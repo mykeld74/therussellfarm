@@ -1,0 +1,59 @@
+---
+description: Enforce camelCase CSS class names across all Svelte and CSS files
+globs: "**/*.svelte,**/*.css"
+alwaysApply: true
+---
+
+## CSS Class Naming: camelCase Only
+
+All CSS class names in this project use **camelCase**. Never use kebab-case or snake_case.
+
+### HTML / Svelte templates
+```svelte
+<!-- ✅ Correct -->
+<div class="bookingCard fieldGroup">
+<button class="btnPrimary btnLg">
+
+<!-- ❌ Wrong -->
+<div class="booking-card field-group">
+<button class="btn-primary btn-lg">
+```
+
+### Svelte class directives
+```svelte
+<!-- ✅ Correct -->
+<tr class:nearlyFull={slot.remaining <= 1}>
+
+<!-- ❌ Wrong -->
+<tr class:nearly-full={slot.remaining <= 1}>
+```
+
+### CSS selectors (in `<style>` blocks and `.css` files)
+```css
+/* ✅ Correct */
+.bookingCard { ... }
+.tableRow.statusCancelled { ... }
+
+/* ❌ Wrong */
+.booking-card { ... }
+.table-row.status-cancelled { ... }
+```
+
+### Dynamic classes from runtime values
+Use a lookup map — never build kebab-case strings via interpolation:
+```svelte
+<script>
+  // ✅ Map runtime values to camelCase class names
+  const badgeClass: Record<string, string> = {
+    pending: 'badgePending',
+    confirmed: 'badgeConfirmed',
+    cancelled: 'badgeCancelled'
+  };
+</script>
+
+<!-- ✅ Correct -->
+<span class="badge {badgeClass[item.status]}">
+
+<!-- ❌ Wrong -->
+<span class="badge badge-{item.status}">
+```

@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.therussellfarm.com)",
+      "mcp__svelte__list-sections",
+      "Bash(pnpm auth:schema)",
+      "Bash(pnpm add resend)",
+      "Bash(pnpm db:generate)",
+      "Bash(pnpm db:migrate)",
+      "Bash(pnpm check)",
+      "Bash(pnpm build)",
+      "Bash(node /tmp/convert-classes.mjs)",
+      "Bash(pnpm --prefix /Users/MichaelD/Developer/therussellfarm check)",
+      "mcp__svelte__svelte-autofixer",
+      "Bash(pnpm db:push)",
+      "Bash(pnpm drizzle-kit push --force)",
+      "Bash(pnpm dlx drizzle-kit push --yes)",
+      "mcp__svelte__get-documentation"
+    ]
+  }
+}
