@@ -18,8 +18,8 @@
 	let name = $state(untrack(() => initialData.name));
 	let email = $state(untrack(() => initialData.email));
 	let phone = $state(untrack(() => initialData.phone));
-	let partySizeAdults = $state(untrack(() => initialData.partySizeAdults || 2));
-	let partySizeKids = $state(untrack(() => initialData.partySizeKids || 0));
+	let partySizeAdults = $state(untrack(() => initialData.partySizeAdults ?? 0));
+	let partySizeKids = $state(untrack(() => initialData.partySizeKids ?? 0));
 
 	const phoneMaskConfig = { mask: '(000) 000-0000' };
 
@@ -79,14 +79,14 @@
 				<div class="numberInput">
 					<button
 						type="button"
-						onclick={() => (partySizeAdults = Math.max(1, partySizeAdults - 1))}
+						onclick={() => (partySizeAdults = Math.max(0, partySizeAdults - 1))}
 						aria-label="Decrease adults">−</button
 					>
 					<input
 						id="adults"
 						type="number"
 						bind:value={partySizeAdults}
-						min="1"
+						min="0"
 						max="8"
 						readonly
 					/>
@@ -127,7 +127,7 @@
 			type="submit"
 			class="btn btnPrimary btnLg"
 			style="width: 100%; margin-top: 0.5rem;"
-			disabled={!name || !email || !phone}
+			disabled={!name || !email || !phone || partySizeAdults < 1}
 		>
 			Continue to Review →
 		</button>

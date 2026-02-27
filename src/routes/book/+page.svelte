@@ -20,8 +20,8 @@
 			selectedSlot: null,
 			name: data.user?.name ?? '',
 			email: data.user?.email ?? '',
-			phone: '',
-			partySizeAdults: 2,
+			phone: data.phone ?? '',
+			partySizeAdults: 0,
 			partySizeKids: 0
 		}))
 	);

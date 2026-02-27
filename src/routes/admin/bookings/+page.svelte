@@ -52,6 +52,26 @@
 			<input id="dateFilter" type="date" name="date" value={data.dateFilter} />
 		</div>
 		<div class="filterField">
+			<label for="refFilter">Ref</label>
+			<input
+				id="refFilter"
+				type="text"
+				name="ref"
+				value={data.refFilter}
+				placeholder="RF-1234"
+			/>
+		</div>
+		<div class="filterField">
+			<label for="emailFilter">Email</label>
+			<input
+				id="emailFilter"
+				type="email"
+				name="email"
+				value={data.emailFilter}
+				placeholder="name@example.com"
+			/>
+		</div>
+		<div class="filterField">
 			<label for="status-filter">Status</label>
 			<select id="status-filter" name="status">
 				<option value="" selected={!data.statusFilter}>All statuses</option>
@@ -61,7 +81,7 @@
 			</select>
 		</div>
 		<button type="submit" class="btn btnSecondary btnSm">Filter</button>
-		{#if data.dateFilter || data.statusFilter}
+		{#if data.dateFilter || data.statusFilter || data.refFilter || data.emailFilter}
 			<a href="/admin/bookings" class="btn btnSm">Clear</a>
 		{/if}
 	</form>

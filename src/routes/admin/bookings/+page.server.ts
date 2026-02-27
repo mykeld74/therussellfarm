@@ -6,6 +6,8 @@ import { eq, desc, and } from 'drizzle-orm';
 export const load: PageServerLoad = async ({ url }) => {
 	const dateFilter = url.searchParams.get('date') ?? '';
 	const statusFilter = url.searchParams.get('status') ?? '';
+	const refFilter = url.searchParams.get('ref') ?? '';
+	const emailFilter = url.searchParams.get('email') ?? '';
 
 	const conditions = [];
 	if (dateFilter) {
@@ -13,6 +15,12 @@ export const load: PageServerLoad = async ({ url }) => {
 	}
 	if (statusFilter && ['pending', 'confirmed', 'cancelled'].includes(statusFilter)) {
 		conditions.push(eq(bookings.status, statusFilter as 'pending' | 'confirmed' | 'cancelled'));
+	}
+	if (refFilter) {
+		conditions.push(eq(bookings.bookingRef, refFilter));
+	}
+	if (emailFilter) {
+		conditions.push(eq(bookings.email, emailFilter));
 	}
 
 	const allBookings = await db
@@ -35,5 +43,5 @@ export const load: PageServerLoad = async ({ url }) => {
 		.where(conditions.length > 0 ? and(...conditions) : undefined)
 		.orderBy(desc(availabilitySlots.date), availabilitySlots.startTime);
 
-	return { bookings: allBookings, dateFilter, statusFilter };
+	return { bookings: allBookings, dateFilter, statusFilter, refFilter, emailFilter };
 };

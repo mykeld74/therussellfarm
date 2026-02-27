@@ -1,6 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import { availabilitySlots, bookings } from '$lib/server/db/schema';
+import { user as userTable } from '$lib/server/db/auth.schema';
 import { and, gte, eq, ne, count } from 'drizzle-orm';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -34,8 +35,19 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	const firstAvailable = slots.find((s) => Number(s.bookedCount) === 0 && s.date <= toStr);
 
+	let phone: string | null = null;
+	if (locals.user) {
+		const [dbUser] = await db
+			.select({ phone: userTable.phone })
+			.from(userTable)
+			.where(eq(userTable.id, locals.user.id))
+			.limit(1);
+		phone = dbUser?.phone ?? null;
+	}
+
 	return {
 		user: locals.user ?? null,
-		firstAvailableDate: firstAvailable?.date ?? null
+		firstAvailableDate: firstAvailable?.date ?? null,
+		phone
 	};
 };

@@ -5,19 +5,38 @@
 
 	let { data }: { data: PageData } = $props();
 
+	function addMinutesToTime(time: string, minutes: number): string {
+		const [h, m] = time.split(':').map((part) => Number(part));
+		if (!Number.isFinite(h) || !Number.isFinite(m)) return time;
+		const date = new Date(2000, 0, 1, h, m);
+		date.setMinutes(date.getMinutes() + minutes);
+		const hh = String(date.getHours()).padStart(2, '0');
+		const mm = String(date.getMinutes()).padStart(2, '0');
+		return `${hh}:${mm}`;
+	}
+
 	// Form state
 	let newDate = $state('');
 	let newStartTime = $state('10:00');
-	let newEndTime = $state('12:00');
+	let newEndTime = $state('');
+	let endTimeTouched = $state(false);
 	// Each slot is for one group; capacity is fixed at 1
 	let newCapacity = $state(1);
 	let formError = $state('');
 	let formSuccess = $state('');
 	let submitting = $state(false);
+	let fullDayLoading = $state(false);
+	let deletingInactive = $state(false);
 	let updatingId = $state<number | null>(null);
 	let seedMessage = $state('');
 	let seedError = $state('');
 	let seeding = $state(false);
+
+	$effect(() => {
+		if (!endTimeTouched) {
+			newEndTime = addMinutesToTime(newStartTime, 15);
+		}
+	});
 
 	async function seedHolidaySlots() {
 		seeding = true;
@@ -63,6 +82,37 @@
 		}
 	}
 
+	async function createFullDay() {
+		if (!newDate) {
+			formError = 'Pick a date first to add a full day of slots.';
+			return;
+		}
+		fullDayLoading = true;
+		formError = '';
+		formSuccess = '';
+		try {
+			const res = await fetch('/api/admin/availability/full-day', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					date: newDate,
+					maxCapacity: newCapacity
+				})
+			});
+			const payload = await res.json().catch(() => ({}));
+			if (!res.ok) {
+				throw new Error(payload.error ?? 'Failed to create full day of slots.');
+			}
+			formSuccess = payload.message ?? 'Full day of slots created.';
+			await invalidateAll();
+		} catch (err) {
+			formError =
+				err instanceof Error ? err.message : 'Failed to create full day of slots. Please try again.';
+		} finally {
+			fullDayLoading = false;
+		}
+	}
+
 	async function toggleSlot(id: number, isActive: boolean) {
 		updatingId = id;
 		try {
@@ -85,6 +135,33 @@
 			await invalidateAll();
 		} finally {
 			updatingId = null;
+		}
+	}
+
+	async function deleteInactiveSlots() {
+		if (
+			!confirm(
+				'Delete all inactive upcoming slots? This cannot be undone, but bookings on other slots will remain.'
+			)
+		)
+			return;
+
+		deletingInactive = true;
+		formError = '';
+		formSuccess = '';
+		try {
+			const res = await fetch('/api/admin/availability/inactive', { method: 'DELETE' });
+			const payload = await res.json().catch(() => ({}));
+			if (!res.ok) {
+				throw new Error(payload.error ?? 'Failed to delete inactive slots.');
+			}
+			formSuccess = payload.message ?? 'Inactive slots deleted.';
+			await invalidateAll();
+		} catch (err) {
+			formError =
+				err instanceof Error ? err.message : 'Failed to delete inactive slots. Please try again.';
+		} finally {
+			deletingInactive = false;
 		}
 	}
 
@@ -122,11 +199,23 @@
 				<div class="timeRow">
 					<div class="field">
 						<label for="start-time">Start Time</label>
-						<input id="start-time" type="time" bind:value={newStartTime} required />
+						<input
+							id="start-time"
+							type="time"
+							bind:value={newStartTime}
+							oninput={() => (endTimeTouched = false)}
+							required
+						/>
 					</div>
 					<div class="field">
 						<label for="end-time">End Time</label>
-						<input id="end-time" type="time" bind:value={newEndTime} required />
+						<input
+							id="end-time"
+							type="time"
+							bind:value={newEndTime}
+							oninput={() => (endTimeTouched = true)}
+							required
+						/>
 					</div>
 				</div>
 
@@ -142,6 +231,16 @@
 						>
 					</div>
 				</div>
+
+				<button
+					type="button"
+					class="btn btnSecondary"
+					style="width:100%; margin-bottom: 0.5rem;"
+					disabled={submitting || fullDayLoading || !newDate}
+					onclick={createFullDay}
+				>
+					{fullDayLoading ? 'Adding full day…' : 'Add full day (10:00–4:00 every 15 min)'}
+				</button>
 
 				<button type="submit" class="btn btnPrimary" style="width:100%;" disabled={submitting}>
 					{submitting ? 'Creating…' : '+ Add Slot'}
@@ -174,7 +273,17 @@
 
 		<!-- Existing slots -->
 		<div class="slotsPanel">
-			<h2>Upcoming Slots ({data.slots.length})</h2>
+			<div class="slotsHeader">
+				<h2>Upcoming Slots ({data.slots.length})</h2>
+				<button
+					type="button"
+					class="btn btnSm btnDanger"
+					disabled={deletingInactive}
+					onclick={deleteInactiveSlots}
+				>
+					{deletingInactive ? 'Deleting inactive…' : 'Delete all inactive'}
+				</button>
+			</div>
 
 			{#if data.slots.length === 0}
 				<div class="emptyPanel">
@@ -257,9 +366,17 @@
 	}
 
 	.createPanel h2,
-	.slotsPanel h2 {
+	.slotsHeader h2 {
 		font-size: 1rem;
 		color: var(--color-text);
+		margin-bottom: 1.25rem;
+	}
+
+	.slotsHeader {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 1rem;
 		margin-bottom: 1.25rem;
 	}
 
