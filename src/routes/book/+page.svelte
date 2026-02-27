@@ -126,7 +126,7 @@
 		<!-- Step content -->
 		<div class="stepContent">
 			{#if step === 'date'}
-				<DateStep onDateSelected={handleDateSelected} />
+				<DateStep onDateSelected={handleDateSelected} initialDate={data.firstAvailableDate} />
 			{:else if step === 'time'}
 				<TimeStep
 					date={formData.selectedDate}

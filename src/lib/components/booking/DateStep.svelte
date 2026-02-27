@@ -1,12 +1,25 @@
 <script lang="ts">
 	import type { SlotSummary } from '$lib/types';
 
-	let { onDateSelected }: { onDateSelected: (date: string) => void } = $props();
+	let {
+		onDateSelected,
+		initialDate = null
+	}: {
+		onDateSelected: (date: string) => void;
+		initialDate?: string | null;
+	} = $props();
 
 	// Calendar state
 	const today = new Date();
 	let viewYear = $state(today.getFullYear());
 	let viewMonth = $state(today.getMonth()); // 0-indexed
+
+	$effect(() => {
+		if (!initialDate) return;
+		const initial = new Date(initialDate + 'T12:00:00');
+		viewYear = initial.getFullYear();
+		viewMonth = initial.getMonth();
+	});
 
 	let availableDates = $state<Set<string>>(new Set());
 	let loading = $state(true);

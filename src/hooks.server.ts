@@ -27,7 +27,7 @@ const handleBetterAuth: Handle = async ({ event, resolve }) => {
 		let role = dbUser?.role ?? 'user';
 
 		// Auto-promote the designated super admin on first sign-in if still 'user'
-		if (session.user.email === SUPER_ADMIN_EMAIL && role === 'user') {
+		if (session.user.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase() && role === 'user') {
 			await db
 				.update(userTable)
 				.set({ role: 'super_admin' })

@@ -1,13 +1,15 @@
 import { db } from '$lib/server/db';
 import { bookings } from '$lib/server/db/schema';
 import { and, eq, isNull } from 'drizzle-orm';
+import crypto from 'node:crypto';
 
 const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no ambiguous 0/O, 1/I
 
 export function generateBookingRef(): string {
+	const bytes = crypto.randomBytes(8);
 	let ref = 'RF-';
-	for (let i = 0; i < 4; i++) {
-		ref += CHARS[Math.floor(Math.random() * CHARS.length)];
+	for (let i = 0; i < 8; i++) {
+		ref += CHARS[bytes[i] % CHARS.length];
 	}
 	return ref;
 }

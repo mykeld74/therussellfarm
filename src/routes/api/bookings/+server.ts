@@ -2,9 +2,11 @@ import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { bookings, availabilitySlots } from '$lib/server/db/schema';
-import { eq, count, and, ne } from 'drizzle-orm';
+import { eq, count, and, ne, sql } from 'drizzle-orm';
 import { generateBookingRef, formatDate, formatTime } from '$lib/server/booking-utils';
 import { sendBookingConfirmation } from '$lib/server/email';
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	const body = await request.json();
@@ -12,6 +14,21 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	if (!slotId || !name || !email || !phone || !partySizeAdults) {
 		return json({ error: 'Missing required fields' }, { status: 400 });
+	}
+
+	const trimmedEmail = String(email).trim().toLowerCase();
+	if (!EMAIL_RE.test(trimmedEmail)) {
+		return json({ error: 'Invalid email address' }, { status: 400 });
+	}
+
+	const trimmedName = String(name).trim();
+	if (trimmedName.length < 1 || trimmedName.length > 200) {
+		return json({ error: 'Name must be between 1 and 200 characters' }, { status: 400 });
+	}
+
+	const trimmedPhone = String(phone).trim();
+	if (trimmedPhone.length < 7 || trimmedPhone.length > 20) {
+		return json({ error: 'Invalid phone number' }, { status: 400 });
 	}
 
 	const adults = Number(partySizeAdults);
@@ -22,6 +39,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 	if (!Number.isFinite(kids) || kids < 0 || kids > 10) {
 		return json({ error: 'Children must be between 0 and 10' }, { status: 400 });
+	}
+
+	const parsedSlotId = Number(slotId);
+	if (!Number.isFinite(parsedSlotId)) {
+		return json({ error: 'Invalid slot' }, { status: 400 });
 	}
 
 	// Verify slot exists, is active, and has capacity
@@ -40,42 +62,40 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			bookings,
 			and(eq(bookings.slotId, availabilitySlots.id), ne(bookings.status, 'cancelled'))
 		)
-		.where(eq(availabilitySlots.id, slotId))
+		.where(eq(availabilitySlots.id, parsedSlotId))
 		.groupBy(availabilitySlots.id);
 
 	if (!slot || !slot.isActive) {
 		error(400, 'Slot not available');
 	}
-	// Each slot is for a single group; if there is any non-cancelled booking, it is full
 	if (Number(slot.bookedCount) > 0) {
 		error(409, 'Slot is fully booked');
 	}
 
-	// Generate unique booking ref
 	const bookingRef = generateBookingRef();
+	const userId = locals.user?.id ?? null;
 
-	// Insert booking
-	const [newBooking] = await db
-		.insert(bookings)
-		.values({
-			bookingRef,
-			slotId,
-			userId: locals.user?.id ?? null,
-			name,
-			email,
-			phone,
-			partySizeAdults: adults,
-			partySizeKids: kids,
-			status: 'confirmed'
-		})
-		.returning({ id: bookings.id, bookingRef: bookings.bookingRef });
+	// Atomic conditional INSERT: only succeeds if no non-cancelled booking exists for this slot
+	const inserted = await db.execute(sql`
+		INSERT INTO bookings (booking_ref, slot_id, user_id, name, email, phone, party_size_adults, party_size_kids, status)
+		SELECT ${bookingRef}, ${parsedSlotId}, ${userId}, ${trimmedName}, ${trimmedEmail}, ${trimmedPhone}, ${adults}, ${kids}, 'confirmed'
+		WHERE NOT EXISTS (
+			SELECT 1 FROM bookings WHERE slot_id = ${parsedSlotId} AND status != 'cancelled'
+		)
+		RETURNING id, booking_ref
+	`);
 
-	// Send confirmation email (non-blocking)
+	if (!inserted.rows.length) {
+		error(409, 'Slot is fully booked');
+	}
+
+	const newRef = (inserted.rows[0] as { booking_ref: string }).booking_ref;
+
 	try {
 		await sendBookingConfirmation({
-			to: email,
-			name,
-			bookingRef: newBooking.bookingRef,
+			to: trimmedEmail,
+			name: trimmedName,
+			bookingRef: newRef,
 			date: formatDate(slot.date),
 			startTime: formatTime(slot.startTime),
 			endTime: formatTime(slot.endTime),
@@ -86,5 +106,5 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		console.error('Booking confirmation email failed:', emailErr);
 	}
 
-	return json({ bookingRef: newBooking.bookingRef }, { status: 201 });
+	return json({ bookingRef: newRef }, { status: 201 });
 };

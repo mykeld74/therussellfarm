@@ -10,6 +10,9 @@ import { formatDate, formatTime } from '$lib/server/booking-utils';
 export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 	requireAdmin(locals);
 
+	const id = Number(params.id);
+	if (!Number.isFinite(id)) return json({ error: 'Invalid id' }, { status: 400 });
+
 	const body = await request.json();
 	const { status } = body;
 
@@ -20,7 +23,7 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 	const [updated] = await db
 		.update(bookings)
 		.set({ status })
-		.where(eq(bookings.id, parseInt(params.id)))
+		.where(eq(bookings.id, id))
 		.returning();
 
 	if (!updated) error(404, 'Booking not found');

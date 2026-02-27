@@ -7,10 +7,14 @@ import { user as userTable } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { claimGuestBookings } from '$lib/server/booking-utils';
 
+function safeRedirectPath(value: string | null): string {
+	if (!value || !value.startsWith('/') || value.startsWith('//')) return '/bookings';
+	return value;
+}
+
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (locals.user) {
-		const next = url.searchParams.get('next') ?? '/bookings';
-		redirect(302, next);
+		redirect(302, safeRedirectPath(url.searchParams.get('next')));
 	}
 	return {};
 };
@@ -29,15 +33,15 @@ export const actions: Actions = {
 		const formData = await event.request.formData();
 		const email = formData.get('email')?.toString() ?? '';
 		const password = formData.get('password')?.toString() ?? '';
-		const next = formData.get('next')?.toString() ?? '/bookings';
+		const next = safeRedirectPath(formData.get('next')?.toString() ?? null);
 
 		try {
 			await auth.api.signInEmail({ body: { email, password } });
 		} catch (error) {
 			if (error instanceof APIError) {
-				return fail(400, { message: error.message || 'Sign in failed. Check your credentials.' });
+				return fail(400, { message: error.message || 'Sign in failed. Check your credentials.', email });
 			}
-			return fail(500, { message: 'Unexpected error. Please try again.' });
+			return fail(500, { message: 'Unexpected error. Please try again.', email });
 		}
 
 		await linkGuestBookings(email);
@@ -68,10 +72,11 @@ export const actions: Actions = {
 		} catch (error) {
 			if (error instanceof APIError) {
 				return fail(400, {
-					message: error.message || 'Registration failed. Email may already be in use.'
+					message: error.message || 'Registration failed. Email may already be in use.',
+					name, email, phone
 				});
 			}
-			return fail(500, { message: 'Unexpected error. Please try again.' });
+			return fail(500, { message: 'Unexpected error. Please try again.', name, email, phone });
 		}
 
 		await linkGuestBookings(email);

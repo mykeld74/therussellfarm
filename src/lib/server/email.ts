@@ -1,11 +1,19 @@
 import { Resend } from 'resend';
 import { env } from '$env/dynamic/private';
 
-// Lazy-initialize so the client is only created at request time, not build time
 let _resend: Resend | null = null;
 function getResend(): Resend {
 	if (!_resend) _resend = new Resend(env.RESEND_API_KEY);
 	return _resend;
+}
+
+function escapeHtml(str: string): string {
+	return str
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#39;');
 }
 
 export interface BookingConfirmationData {
@@ -38,6 +46,12 @@ export async function sendBookingCancelled(data: BookingConfirmationData) {
 }
 
 function buildCancelledHtml(data: BookingConfirmationData): string {
+	const name = escapeHtml(data.name);
+	const ref = escapeHtml(data.bookingRef);
+	const date = escapeHtml(data.date);
+	const start = escapeHtml(data.startTime);
+	const end = escapeHtml(data.endTime);
+
 	return `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
@@ -66,7 +80,7 @@ function buildCancelledHtml(data: BookingConfirmationData): string {
               Your booking has been cancelled
             </h2>
             <p style="font-family:sans-serif;line-height:1.6;">
-              Hi ${data.name},
+              Hi ${name},
             </p>
             <p style="font-family:sans-serif;line-height:1.6;">
               We're sorry to let you know that your booking has been cancelled.
@@ -82,15 +96,15 @@ function buildCancelledHtml(data: BookingConfirmationData): string {
                     style="font-family:sans-serif;font-size:15px;">
                     <tr>
                       <td style="color:#6b6355;width:40%;">Booking Reference</td>
-                      <td style="font-weight:bold;color:#8b1a1a;font-size:17px;">${data.bookingRef}</td>
+                      <td style="font-weight:bold;color:#8b1a1a;font-size:17px;">${ref}</td>
                     </tr>
                     <tr>
                       <td style="color:#6b6355;">Date</td>
-                      <td style="font-weight:600;">${data.date}</td>
+                      <td style="font-weight:600;">${date}</td>
                     </tr>
                     <tr>
                       <td style="color:#6b6355;">Time</td>
-                      <td style="font-weight:600;">${data.startTime} – ${data.endTime}</td>
+                      <td style="font-weight:600;">${start} – ${end}</td>
                     </tr>
                   </table>
                 </td>
@@ -121,6 +135,12 @@ function buildCancelledHtml(data: BookingConfirmationData): string {
 }
 
 function buildConfirmationHtml(data: BookingConfirmationData): string {
+	const name = escapeHtml(data.name);
+	const ref = escapeHtml(data.bookingRef);
+	const date = escapeHtml(data.date);
+	const start = escapeHtml(data.startTime);
+	const end = escapeHtml(data.endTime);
+
 	return `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
@@ -149,7 +169,7 @@ function buildConfirmationHtml(data: BookingConfirmationData): string {
               Your booking is confirmed! 🌲
             </h2>
             <p style="font-family:sans-serif;line-height:1.6;">
-              Hi ${data.name},
+              Hi ${name},
             </p>
             <p style="font-family:sans-serif;line-height:1.6;">
               We can't wait to welcome your family to The Russell Farm.
@@ -165,15 +185,15 @@ function buildConfirmationHtml(data: BookingConfirmationData): string {
                     style="font-family:sans-serif;font-size:15px;">
                     <tr>
                       <td style="color:#6b6355;width:40%;">Booking Reference</td>
-                      <td style="font-weight:bold;color:#2d5a27;font-size:17px;">${data.bookingRef}</td>
+                      <td style="font-weight:bold;color:#2d5a27;font-size:17px;">${ref}</td>
                     </tr>
                     <tr>
                       <td style="color:#6b6355;">Date</td>
-                      <td style="font-weight:600;">${data.date}</td>
+                      <td style="font-weight:600;">${date}</td>
                     </tr>
                     <tr>
                       <td style="color:#6b6355;">Time</td>
-                      <td style="font-weight:600;">${data.startTime} – ${data.endTime}</td>
+                      <td style="font-weight:600;">${start} – ${end}</td>
                     </tr>
                     <tr>
                       <td style="color:#6b6355;">Adults</td>
