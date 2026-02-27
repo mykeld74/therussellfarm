@@ -60,13 +60,18 @@
 		</button>
 
 		<nav class:open={menuOpen}>
+			<a href="/maple-syrup" class:active={page.url.pathname === '/maple-syrup'} onclick={closeAll}
+				>Maple Syrup</a
+			>
 			<a
 				href="/christmas-trees"
 				class:active={page.url.pathname === '/christmas-trees'}
 				onclick={closeAll}>Christmas Trees</a
 			>
-			<a href="/maple-syrup" class:active={page.url.pathname === '/maple-syrup'} onclick={closeAll}
-				>Maple Syrup</a
+			<a
+				href="/south-lot"
+				class:active={page.url.pathname === '/south-lot'}
+				onclick={closeAll}>South Lot</a
 			>
 			<a
 				href="/book"

@@ -75,7 +75,7 @@
 					Pre-cut trees at the barn, or walk out and cut your own in the South Lot. Same great trees
 					— no reservation required. Perfect if you'd prefer to pick and cut on your own.
 				</p>
-				<a href="#south-lot" class="btn btnSecondary">More About the South Lot</a>
+				<a href="/south-lot" class="btn btnSecondary">More About the South Lot</a>
 			</div>
 		</div>
 	</div>
@@ -186,25 +186,6 @@
 				</div>
 			</div>
 		</div>
-	</div>
-</section>
-
-<!-- ── South Lot ── -->
-<section class="sectionWhite" id="south-lot">
-	<div class="container contentBlock">
-		<h2 class="sectionTitle leftAlign">South Lot — Self-Service</h2>
-		<p class="priceLead">$65 per tree</p>
-		<p>
-			The South Lot option is perfect if you'd like to skip the wagon ride and head straight to the
-			trees. Choose from pre-cut trees at the barn or walk out and cut your own in the South Lot.
-		</p>
-		<p>
-			Same great Fraser fir, Douglas fir, and Scotch pine — at a lower price when you don't need the
-			full wagon experience.
-		</p>
-		<p>
-			<strong>No reservation required</strong> for the South Lot — just stop by during open hours.
-		</p>
 	</div>
 </section>
 
@@ -336,10 +317,6 @@
 		font-size: clamp(1.5rem, 3vw, 2rem);
 		color: var(--color-forest-dk);
 		margin-bottom: 2rem;
-	}
-
-	.sectionTitle.leftAlign {
-		text-align: left;
 	}
 
 	/* Pricing cards */
@@ -492,25 +469,6 @@
 		margin: 0;
 		font-size: 0.85rem;
 		color: var(--color-text-muted);
-	}
-
-	/* South Lot */
-	.contentBlock {
-		max-width: 640px;
-	}
-
-	.priceLead {
-		font-family: var(--font-serif);
-		font-size: 1.5rem;
-		font-weight: 700;
-		color: var(--color-forest);
-		margin-bottom: 1.25rem;
-	}
-
-	.contentBlock p {
-		color: var(--color-text-muted);
-		line-height: 1.75;
-		margin-bottom: 1.25rem;
 	}
 
 	/* Wreaths band */
