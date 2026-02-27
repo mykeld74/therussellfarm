@@ -9,13 +9,13 @@
 	const treePriceValue = $derived(
 		form && 'treePrice' in form && typeof form.treePrice === 'string'
 			? form.treePrice
-			: data.treePrice.toFixed(2)
+			: data.treePrice.toFixed(0)
 	);
 
 	const experiencePriceValue = $derived(
 		form && 'experiencePrice' in form && typeof form.experiencePrice === 'string'
 			? form.experiencePrice
-			: data.experiencePrice.toFixed(2)
+			: data.experiencePrice.toFixed(0)
 	);
 </script>
 
@@ -62,7 +62,7 @@
 						name="experiencePrice"
 						type="number"
 						min="0"
-						step="0.01"
+						step="1"
 						value={experiencePriceValue}
 						required
 					/>
@@ -79,7 +79,7 @@
 						name="treePrice"
 						type="number"
 						min="0"
-						step="0.01"
+						step="1"
 						value={treePriceValue}
 						required
 					/>

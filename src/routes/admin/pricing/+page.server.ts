@@ -46,26 +46,34 @@ export const actions: Actions = {
 		const treePrice = Number(treePriceStr);
 		const experiencePrice = Number(experiencePriceStr);
 
-		if (!Number.isFinite(treePrice) || treePrice <= 0) {
-			return fail(400, { error: 'Tree price must be a positive number.', treePrice: treePriceStr, experiencePrice: experiencePriceStr });
+		if (!Number.isFinite(treePrice) || treePrice <= 0 || !Number.isInteger(treePrice)) {
+			return fail(400, {
+				error: 'Tree price must be a whole dollar amount greater than 0.',
+				treePrice: treePriceStr,
+				experiencePrice: experiencePriceStr
+			});
 		}
 
-		if (!Number.isFinite(experiencePrice) || experiencePrice <= 0) {
-			return fail(400, { error: 'Experience price must be a positive number.', treePrice: treePriceStr, experiencePrice: experiencePriceStr });
+		if (!Number.isFinite(experiencePrice) || experiencePrice <= 0 || !Number.isInteger(experiencePrice)) {
+			return fail(400, {
+				error: 'Experience price must be a whole dollar amount greater than 0.',
+				treePrice: treePriceStr,
+				experiencePrice: experiencePriceStr
+			});
 		}
 
 		await db
 			.insert(pricing)
 			.values({
 				id: SINGLE_PRICING_ID,
-				treePriceCents: Math.round(treePrice * 100),
-				experiencePriceCents: Math.round(experiencePrice * 100)
+				treePriceCents: treePrice * 100,
+				experiencePriceCents: experiencePrice * 100
 			})
 			.onConflictDoUpdate({
 				target: pricing.id,
 				set: {
-					treePriceCents: Math.round(treePrice * 100),
-					experiencePriceCents: Math.round(experiencePrice * 100)
+					treePriceCents: treePrice * 100,
+					experiencePriceCents: experiencePrice * 100
 				}
 			});
 
