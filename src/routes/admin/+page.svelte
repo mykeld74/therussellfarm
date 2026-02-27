@@ -2,6 +2,16 @@
 	import type { PageData } from './$types';
 	import { formatDate, formatTime } from '$lib/utils';
 
+	function formatPhone(raw: string | null | undefined): string {
+		if (!raw) return '—';
+		const digits = raw.replace(/\D/g, '');
+		if (digits.length !== 10) return raw;
+		const area = digits.slice(0, 3);
+		const prefix = digits.slice(3, 6);
+		const line = digits.slice(6);
+		return `(${area}) ${prefix}-${line}`;
+	}
+
 	let { data }: { data: PageData } = $props();
 </script>
 
@@ -65,7 +75,7 @@
 						</span>
 						<span class="cellContact">{slot.bookingName ?? '—'}</span>
 						<span class="cellContact">{slot.bookingEmail ?? '—'}</span>
-						<span class="cellContact">{slot.bookingPhone ?? '—'}</span>
+						<span class="cellContact">{formatPhone(slot.bookingPhone)}</span>
 					</div>
 				{/each}
 			</div>

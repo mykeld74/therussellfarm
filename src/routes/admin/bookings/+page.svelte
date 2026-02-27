@@ -335,12 +335,10 @@
 		font-size: 0.875rem;
 	}
 
+	.bookingsTable th:last-child,
 	.actionsCell {
-		display: flex;
-		gap: 0.4rem;
-		align-items: center;
-		justify-content: center;
-		height: 1%;
+		text-align: center;
+		white-space: nowrap;
 	}
 
 	/* Mobile: card list for readable full booking */
