@@ -7,7 +7,16 @@ import { auth } from '$lib/server/auth';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) redirect(302, '/auth/login?next=/account');
-	return { user: locals.user };
+
+	// Better Auth's session user doesn't include custom columns like phone,
+	// so we fetch it directly from the DB.
+	const [dbUser] = await db
+		.select({ phone: userTable.phone })
+		.from(userTable)
+		.where(eq(userTable.id, locals.user.id))
+		.limit(1);
+
+	return { user: locals.user, phone: dbUser?.phone ?? null };
 };
 
 export const actions: Actions = {
@@ -16,14 +25,22 @@ export const actions: Actions = {
 
 		const data = await request.formData();
 		const name = (data.get('name') as string | null)?.trim() ?? '';
+		const phone = (data.get('phone') as string | null)?.trim() ?? '';
 
 		if (name.length < 2) {
-			return fail(400, { profileError: 'Name must be at least 2 characters.' });
+			return fail(400, {
+				profileError: 'Name must be at least 2 characters.',
+				updatedName: name,
+				updatedPhone: phone
+			});
 		}
 
-		await db.update(userTable).set({ name }).where(eq(userTable.id, locals.user.id));
+		await db
+			.update(userTable)
+			.set({ name, phone: phone || null })
+			.where(eq(userTable.id, locals.user.id));
 
-		return { profileSuccess: true, updatedName: name };
+		return { profileSuccess: true, updatedName: name, updatedPhone: phone };
 	},
 
 	changePassword: async ({ request, locals }) => {

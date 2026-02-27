@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import IMask from 'imask';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -7,11 +8,19 @@
 	let profileSubmitting = $state(false);
 	let passwordSubmitting = $state(false);
 
-	// Show the saved name after a successful update, otherwise the loaded value
+	const phoneMaskConfig = { mask: '(000) 000-0000' };
+
+	// Show saved values after a successful update, otherwise fall back to loaded values
 	const nameValue = $derived(
 		form && 'updatedName' in form && typeof form.updatedName === 'string'
 			? form.updatedName
 			: data.user.name
+	);
+
+	const phoneValue = $derived(
+		form && 'updatedPhone' in form && typeof form.updatedPhone === 'string'
+			? form.updatedPhone
+			: (data.phone ?? '')
 	);
 </script>
 
@@ -34,7 +43,7 @@
 		</div>
 
 		{#if form?.profileSuccess}
-			<div class="alert alertSuccess">Name updated successfully.</div>
+			<div class="alert alertSuccess">Profile updated successfully.</div>
 		{/if}
 		{#if form?.profileError}
 			<div class="alert alertError">{form.profileError}</div>
@@ -46,7 +55,7 @@
 			use:enhance={() => {
 				profileSubmitting = true;
 				return async ({ update }) => {
-					await update();
+					await update({ reset: false });
 					profileSubmitting = false;
 				};
 			}}
@@ -62,6 +71,18 @@
 				<p class="fieldNote">
 					Email cannot be changed — it's used to link your bookings to your account.
 				</p>
+			</div>
+
+			<div class="field">
+				<label for="phone">Phone Number <span class="labelOptional">(optional)</span></label>
+				<input
+					use:IMask={phoneMaskConfig}
+					id="phone"
+					name="phone"
+					type="tel"
+					value={phoneValue}
+					placeholder="(555) 555-5555"
+				/>
 			</div>
 
 			<button type="submit" class="btn btnPrimary" disabled={profileSubmitting}>
@@ -172,6 +193,12 @@
 		font-size: 0.8rem;
 		color: var(--color-text-muted);
 		margin: 0.375rem 0 0;
+	}
+
+	.labelOptional {
+		font-weight: 400;
+		color: var(--color-text-muted);
+		font-size: 0.85em;
 	}
 
 	input:disabled {

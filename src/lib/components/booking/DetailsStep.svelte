@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { BookingFormData } from '$lib/types';
-
+	import IMask from 'imask';
 	import { untrack } from 'svelte';
 
 	let {
@@ -20,6 +20,8 @@
 	let phone = $state(untrack(() => initialData.phone));
 	let partySizeAdults = $state(untrack(() => initialData.partySizeAdults || 2));
 	let partySizeKids = $state(untrack(() => initialData.partySizeKids || 0));
+
+	const phoneMaskConfig = { mask: '(000) 000-0000' };
 
 	function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
@@ -61,6 +63,7 @@
 		<div class="field">
 			<label for="phone">Phone Number</label>
 			<input
+				use:IMask={phoneMaskConfig}
 				id="phone"
 				type="tel"
 				bind:value={phone}

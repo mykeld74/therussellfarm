@@ -49,9 +49,22 @@ export const actions: Actions = {
 		const email = formData.get('email')?.toString() ?? '';
 		const password = formData.get('password')?.toString() ?? '';
 		const name = formData.get('name')?.toString() ?? '';
+		const phone = formData.get('phone')?.toString() ?? '';
 
 		try {
 			await auth.api.signUpEmail({ body: { email, password, name } });
+
+			if (phone) {
+				const [created] = await db
+					.select({ id: userTable.id })
+					.from(userTable)
+					.where(eq(userTable.email, email))
+					.limit(1);
+
+				if (created) {
+					await db.update(userTable).set({ phone }).where(eq(userTable.id, created.id));
+				}
+			}
 		} catch (error) {
 			if (error instanceof APIError) {
 				return fail(400, {

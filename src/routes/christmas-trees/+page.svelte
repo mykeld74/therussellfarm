@@ -1,4 +1,8 @@
 <script lang="ts">
+	import type { PageData } from './$types';
+
+	let { data }: { data: PageData } = $props();
+
 	let openFaq = $state<number | null>(null);
 
 	const faqs = [
@@ -60,7 +64,7 @@
 		<div class="optionsGrid">
 			<div class="optionCard featured">
 				<h3>Tree &amp; Horse-Drawn Wagon Ride</h3>
-				<p class="price">$110 per household</p>
+				<p class="price">${data.experiencePrice.toFixed(0)} per household</p>
 				<p>
 					Our full experience: ride out to the fields, pick your tree, then relax at the cottage
 					with hot chocolate, games, and the fire. We cut your tree and load it on the wagon for
@@ -70,7 +74,7 @@
 			</div>
 			<div class="optionCard">
 				<h3>South Lot — No Wagon Ride</h3>
-				<p class="price">$65 per tree</p>
+				<p class="price">${data.treePrice.toFixed(0)} per tree</p>
 				<p>
 					Pre-cut trees at the barn, or walk out and cut your own in the South Lot. Same great trees
 					— no reservation required. Perfect if you'd prefer to pick and cut on your own.

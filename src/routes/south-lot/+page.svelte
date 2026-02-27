@@ -1,8 +1,16 @@
+<script lang="ts">
+	import type { PageData } from './$types';
+
+	let { data }: { data: PageData } = $props();
+</script>
+
 <svelte:head>
 	<title>South Lot – The Russell Farm</title>
 	<meta
 		name="description"
-		content="Cut-your-own or pre-cut Christmas trees in the South Lot at The Russell Farm. $65 per tree, no reservation required."
+		content={`Cut-your-own or pre-cut Christmas trees in the South Lot at The Russell Farm. $${data.treePrice.toFixed(
+			0
+		)} per tree, no reservation required.`}
 	/>
 </svelte:head>
 
@@ -15,7 +23,7 @@
 
 <section class="sectionWhite">
 	<div class="container contentBlock">
-		<p class="priceLead">$65 per tree</p>
+		<p class="priceLead">${data.treePrice.toFixed(0)} per tree</p>
 		<p>
 			The South Lot is perfect if you'd like to skip the wagon ride and head straight to the trees.
 			Choose from pre-cut trees at the barn or walk out and cut your own in the South Lot.

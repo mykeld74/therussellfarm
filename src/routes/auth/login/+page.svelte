@@ -1,8 +1,9 @@
 <script lang="ts">
+	import IMask from 'imask';
 	import { enhance } from '$app/forms';
 	import type { ActionData } from './$types';
 	import { page } from '$app/state';
-
+	const maskConfig = { mask: '(000) 000-0000' };
 	let { form }: { form: ActionData } = $props();
 
 	let activeTab = $state<'signIn' | 'signUp'>('signIn');
@@ -24,10 +25,18 @@
 
 		<!-- Tab switcher -->
 		<div class="tabs">
-			<button class="tab" class:active={activeTab === 'signIn'} onclick={() => (activeTab = 'signIn')}>
+			<button
+				class="tab"
+				class:active={activeTab === 'signIn'}
+				onclick={() => (activeTab = 'signIn')}
+			>
 				Sign In
 			</button>
-			<button class="tab" class:active={activeTab === 'signUp'} onclick={() => (activeTab = 'signUp')}>
+			<button
+				class="tab"
+				class:active={activeTab === 'signUp'}
+				onclick={() => (activeTab = 'signUp')}
+			>
 				Create Account
 			</button>
 		</div>
@@ -53,11 +62,25 @@
 
 				<div class="field">
 					<label for="email">Email</label>
-					<input id="email" name="email" type="email" required placeholder="you@example.com" autocomplete="email" />
+					<input
+						id="email"
+						name="email"
+						type="email"
+						required
+						placeholder="you@example.com"
+						autocomplete="email"
+					/>
 				</div>
 				<div class="field">
 					<label for="password">Password</label>
-					<input id="password" name="password" type="password" required placeholder="Your password" autocomplete="current-password" />
+					<input
+						id="password"
+						name="password"
+						type="password"
+						required
+						placeholder="Your password"
+						autocomplete="current-password"
+					/>
 				</div>
 
 				<button type="submit" class="btn btnPrimary" style="width:100%;" disabled={loading}>
@@ -79,15 +102,49 @@
 			>
 				<div class="field">
 					<label for="name-reg">Full Name</label>
-					<input id="name-reg" name="name" type="text" required placeholder="Jane Smith" autocomplete="name" />
+					<input
+						id="name-reg"
+						name="name"
+						type="text"
+						required
+						placeholder="Jane Smith"
+						autocomplete="name"
+					/>
 				</div>
 				<div class="field">
 					<label for="email-reg">Email</label>
-					<input id="email-reg" name="email" type="email" required placeholder="you@example.com" autocomplete="email" />
+					<input
+						id="email-reg"
+						name="email"
+						type="email"
+						required
+						placeholder="you@example.com"
+						autocomplete="email"
+					/>
+				</div>
+				<div class="field">
+					<label for="phone-reg">Phone</label>
+					<input
+						use:IMask={maskConfig}
+						id="phone-reg"
+						name="phone"
+						type="tel"
+						required
+						placeholder="(555) 555-5555"
+						autocomplete="tel"
+					/>
 				</div>
 				<div class="field">
 					<label for="password-reg">Password</label>
-					<input id="password-reg" name="password" type="password" required placeholder="Choose a password (min 8 chars)" minlength="8" autocomplete="new-password" />
+					<input
+						id="password-reg"
+						name="password"
+						type="password"
+						required
+						placeholder="Choose a password (min 8 chars)"
+						minlength="8"
+						autocomplete="new-password"
+					/>
 				</div>
 
 				<button type="submit" class="btn btnPrimary" style="width:100%;" disabled={loading}>
@@ -150,7 +207,9 @@
 		font-size: 0.9rem;
 		font-family: var(--font-sans);
 		color: var(--color-text-muted);
-		transition: background 0.15s, color 0.15s;
+		transition:
+			background 0.15s,
+			color 0.15s;
 	}
 
 	.tab.active {

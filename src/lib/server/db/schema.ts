@@ -35,6 +35,16 @@ export const bookings = pgTable('bookings', {
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 });
 
+// --- pricing ---
+// Single-row table holding public pricing used across the site.
+// Values are stored in cents to avoid floating point issues.
+export const pricing = pgTable('pricing', {
+	id: serial('id').primaryKey(),
+	treePriceCents: integer('tree_price_cents').notNull().default(6500),
+	experiencePriceCents: integer('experience_price_cents').notNull().default(11000),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+});
+
 // --- Relations ---
 export const availabilitySlotsRelations = relations(availabilitySlots, ({ many }) => ({
 	bookings: many(bookings)
