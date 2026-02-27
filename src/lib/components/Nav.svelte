@@ -60,18 +60,16 @@
 		</button>
 
 		<nav class:open={menuOpen}>
-			<a href="/maple-syrup" class:active={page.url.pathname === '/maple-syrup'} onclick={closeAll}
-				>Maple Syrup</a
-			>
 			<a
 				href="/christmas-trees"
 				class:active={page.url.pathname === '/christmas-trees'}
 				onclick={closeAll}>Christmas Trees</a
 			>
-			<a
-				href="/south-lot"
-				class:active={page.url.pathname === '/south-lot'}
-				onclick={closeAll}>South Lot</a
+			<a href="/south-lot" class:active={page.url.pathname === '/south-lot'} onclick={closeAll}
+				>South Lot</a
+			>
+			<a href="/maple-syrup" class:active={page.url.pathname === '/maple-syrup'} onclick={closeAll}
+				>Maple Syrup</a
 			>
 			<a
 				href="/book"
@@ -121,8 +119,13 @@
 								role="menuitem"
 							>
 								<svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
-									<circle cx="7.5" cy="5" r="2.5" stroke="currentColor" stroke-width="1.3"/>
-									<path d="M2 13c0-3 2.5-5 5.5-5s5.5 2 5.5 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+									<circle cx="7.5" cy="5" r="2.5" stroke="currentColor" stroke-width="1.3" />
+									<path
+										d="M2 13c0-3 2.5-5 5.5-5s5.5 2 5.5 5"
+										stroke="currentColor"
+										stroke-width="1.3"
+										stroke-linecap="round"
+									/>
 								</svg>
 								Account Settings
 							</a>
@@ -205,11 +208,7 @@
 							{/if}
 							<div class="dropdownDivider"></div>
 							<form method="POST" action="/auth/logout">
-								<button
-									type="submit"
-									class="dropdownItem dropdownSignOut"
-									role="menuitem"
-								>
+								<button type="submit" class="dropdownItem dropdownSignOut" role="menuitem">
 									<svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
 										<path
 											d="M6 2H2.5A1.5 1.5 0 001 3.5v8A1.5 1.5 0 002.5 13H6"
