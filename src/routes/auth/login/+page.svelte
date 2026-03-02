@@ -10,6 +10,7 @@
 	let loading = $state(false);
 
 	const next = $derived(page.url.searchParams.get('next') ?? '/bookings');
+	const resetSuccess = $derived(page.url.searchParams.get('reset') === '1');
 </script>
 
 <svelte:head>
@@ -40,6 +41,10 @@
 				Create Account
 			</button>
 		</div>
+
+		{#if resetSuccess}
+			<div class="alert alertSuccess">Password updated! Sign in with your new password.</div>
+		{/if}
 
 		{#if form?.message}
 			<div class="alert alertError">{form.message}</div>
@@ -86,6 +91,7 @@
 				<button type="submit" class="btn btnPrimary" style="width:100%;" disabled={loading}>
 					{loading ? 'Signing in…' : 'Sign In'}
 				</button>
+				<p class="forgotLink"><a href="/auth/forgot-password">Forgot your password?</a></p>
 			</form>
 		{:else}
 			<!-- Sign Up Form -->
@@ -216,6 +222,16 @@
 		background: var(--color-forest);
 		color: var(--color-white);
 		font-weight: 600;
+	}
+
+	.forgotLink {
+		text-align: center;
+		margin-top: 0.75rem;
+		font-size: 0.875rem;
+	}
+
+	.forgotLink a {
+		color: var(--color-text-muted);
 	}
 
 	.backLink {

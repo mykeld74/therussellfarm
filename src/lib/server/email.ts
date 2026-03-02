@@ -36,6 +36,21 @@ export async function sendBookingConfirmation(data: BookingConfirmationData) {
 	});
 }
 
+export interface PasswordResetData {
+	to: string;
+	name: string;
+	resetUrl: string;
+}
+
+export async function sendPasswordResetEmail(data: PasswordResetData) {
+	return getResend().emails.send({
+		from: env.FROM_EMAIL,
+		to: data.to,
+		subject: 'Reset Your Password – The Russell Farm',
+		html: buildPasswordResetHtml(data)
+	});
+}
+
 export async function sendBookingCancelled(data: BookingConfirmationData) {
 	return getResend().emails.send({
 		from: env.FROM_EMAIL,
@@ -43,6 +58,83 @@ export async function sendBookingCancelled(data: BookingConfirmationData) {
 		subject: `Booking Cancelled – The Russell Farm (${data.bookingRef})`,
 		html: buildCancelledHtml(data)
 	});
+}
+
+function buildPasswordResetHtml(data: PasswordResetData): string {
+	const name = escapeHtml(data.name);
+	const url = escapeHtml(data.resetUrl);
+
+	return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f9f5ee;font-family:Georgia,serif;color:#2c2c2c;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px;">
+    <tr><td>
+      <table width="600" align="center" cellpadding="0" cellspacing="0"
+        style="background:#fff;border-radius:8px;overflow:hidden;max-width:100%;">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:#2d5a27;padding:32px 40px;text-align:center;">
+            <h1 style="margin:0;color:#f9f5ee;font-size:26px;font-family:Georgia,serif;">
+              The Russell Farm
+            </h1>
+            <p style="margin:6px 0 0;color:#a8d5a0;font-size:14px;font-family:sans-serif;">
+              Password Reset
+            </p>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:36px 40px;">
+            <h2 style="color:#2d5a27;margin-top:0;font-family:Georgia,serif;">
+              Reset your password
+            </h2>
+            <p style="font-family:sans-serif;line-height:1.6;">
+              Hi ${name},
+            </p>
+            <p style="font-family:sans-serif;line-height:1.6;">
+              We received a request to reset your password. Click the button below to choose a new one.
+              This link expires in <strong>1 hour</strong>.
+            </p>
+
+            <!-- CTA button -->
+            <table cellpadding="0" cellspacing="0" style="margin:28px 0;">
+              <tr>
+                <td style="background:#2d5a27;border-radius:6px;">
+                  <a href="${url}"
+                    style="display:inline-block;padding:14px 28px;color:#f9f5ee;
+                      font-family:sans-serif;font-size:15px;font-weight:600;
+                      text-decoration:none;">
+                    Reset Password
+                  </a>
+                </td>
+              </tr>
+            </table>
+
+            <p style="font-family:sans-serif;line-height:1.6;color:#6b6355;font-size:14px;">
+              If you didn't request a password reset, you can safely ignore this email.
+              Your password won't change until you click the link above.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#ede6d6;padding:20px 40px;text-align:center;
+            font-family:sans-serif;font-size:13px;color:#6b6355;
+            border-top:1px solid #d4c9b0;">
+            <p style="margin:0;">
+              — The Russell Family
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
 }
 
 function buildCancelledHtml(data: BookingConfirmationData): string {

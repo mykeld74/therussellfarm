@@ -28,24 +28,25 @@ export const load: PageServerLoad = async () => {
 		.groupBy(availabilitySlots.id)
 		.orderBy(availabilitySlots.date, availabilitySlots.startTime);
 
-	// Total pending bookings today
-	const todaySlots = upcomingSlots.filter((s) => s.date === today);
-	const totalTodayBookings = todaySlots.reduce((sum, s) => sum + Number(s.bookedCount), 0);
+	const mappedSlots = upcomingSlots.map((s) => {
+		const bookedCount = Number(s.bookedCount);
+		return {
+			...s,
+			bookedCount,
+			// One group per slot: remaining is 1 if unbooked, else 0
+			remaining: bookedCount === 0 ? 1 : 0
+		};
+	});
 
-	// Total upcoming bookings
-	const totalUpcomingBookings = upcomingSlots.reduce((sum, s) => sum + Number(s.bookedCount), 0);
+	// Slots that have a confirmed booking
+	const bookedSlots = mappedSlots.filter((s) => s.bookedCount > 0).length;
+
+	// Active slots with no booking yet
+	const availableSlots = mappedSlots.filter((s) => s.isActive && s.bookedCount === 0).length;
 
 	return {
-		upcomingSlots: upcomingSlots.map((s) => {
-			const bookedCount = Number(s.bookedCount);
-			return {
-				...s,
-				bookedCount,
-				// One group per slot: remaining is 1 if unbooked, else 0
-				remaining: bookedCount === 0 ? 1 : 0
-			};
-		}),
-		totalTodayBookings,
-		totalUpcomingBookings
+		upcomingSlots: mappedSlots,
+		bookedSlots,
+		availableSlots
 	};
 };

@@ -6,17 +6,12 @@
 
 	let submitting = $state(false);
 
-	const treePriceValue = $derived(
-		form && 'treePrice' in form && typeof form.treePrice === 'string'
-			? form.treePrice
-			: data.treePrice.toFixed(0)
-	);
-
-	const experiencePriceValue = $derived(
-		form && 'experiencePrice' in form && typeof form.experiencePrice === 'string'
-			? form.experiencePrice
-			: data.experiencePrice.toFixed(0)
-	);
+	function fieldVal(key: string, fallback: number): string {
+		if (form && key in form && typeof (form as Record<string, unknown>)[key] === 'string') {
+			return (form as Record<string, string>)[key];
+		}
+		return fallback.toFixed(0);
+	}
 </script>
 
 <svelte:head>
@@ -30,8 +25,8 @@
 		<div class="sectionHeader">
 			<h2>Public Pricing</h2>
 			<p class="sectionSub">
-				These prices appear on the public Christmas Trees and South Lot pages, and should match any
-				signage on the farm.
+				These prices appear on the public Christmas Trees, South Lot, and Maple Syrup pages, and
+				should match any signage on the farm.
 			</p>
 		</div>
 
@@ -53,6 +48,7 @@
 			}}
 			class="pricingForm"
 		>
+			<!-- Christmas Trees / South Lot -->
 			<div class="fieldGroup">
 				<label for="experiencePrice">Tree &amp; Wagon Experience (per household)</label>
 				<div class="priceInput">
@@ -61,13 +57,13 @@
 						id="experiencePrice"
 						name="experiencePrice"
 						type="number"
-						min="0"
+						min="1"
 						step="1"
-						value={experiencePriceValue}
+						value={fieldVal('experiencePrice', data.experiencePrice)}
 						required
 					/>
 				</div>
-				<p class="fieldHint">This price is shown as “per household” on the Christmas Trees page.</p>
+				<p class="fieldHint">Shown as "per household" on the Christmas Trees page.</p>
 			</div>
 
 			<div class="fieldGroup">
@@ -78,16 +74,88 @@
 						id="treePrice"
 						name="treePrice"
 						type="number"
-						min="0"
+						min="1"
 						step="1"
-						value={treePriceValue}
+						value={fieldVal('treePrice', data.treePrice)}
 						required
 					/>
 				</div>
-				<p class="fieldHint">
-					This price is shown as “per tree” on both the Christmas Trees and South Lot pages.
-				</p>
+				<p class="fieldHint">Shown as "per tree" on the Christmas Trees and South Lot pages.</p>
 			</div>
+
+			<!-- Maple Syrup -->
+			<div class="groupDivider">
+				<span class="groupLabel">Maple Syrup</span>
+			</div>
+
+			<div class="syrupGrid">
+				<div class="fieldGroup">
+					<label for="mapleSyrupPint">Pint</label>
+					<div class="priceInput">
+						<span class="currency">$</span>
+						<input
+							id="mapleSyrupPint"
+							name="mapleSyrupPint"
+							type="number"
+							min="1"
+							step="1"
+							value={fieldVal('mapleSyrupPint', data.mapleSyrupPint)}
+							required
+						/>
+					</div>
+				</div>
+
+				<div class="fieldGroup">
+					<label for="mapleSyrupQuart">Quart</label>
+					<div class="priceInput">
+						<span class="currency">$</span>
+						<input
+							id="mapleSyrupQuart"
+							name="mapleSyrupQuart"
+							type="number"
+							min="1"
+							step="1"
+							value={fieldVal('mapleSyrupQuart', data.mapleSyrupQuart)}
+							required
+						/>
+					</div>
+				</div>
+
+				<div class="fieldGroup">
+					<label for="mapleSyrupHalfGallon">Half Gallon</label>
+					<div class="priceInput">
+						<span class="currency">$</span>
+						<input
+							id="mapleSyrupHalfGallon"
+							name="mapleSyrupHalfGallon"
+							type="number"
+							min="1"
+							step="1"
+							value={fieldVal('mapleSyrupHalfGallon', data.mapleSyrupHalfGallon)}
+							required
+						/>
+					</div>
+				</div>
+
+				<div class="fieldGroup">
+					<label for="mapleSyrupGallon">Gallon</label>
+					<div class="priceInput">
+						<span class="currency">$</span>
+						<input
+							id="mapleSyrupGallon"
+							name="mapleSyrupGallon"
+							type="number"
+							min="1"
+							step="1"
+							value={fieldVal('mapleSyrupGallon', data.mapleSyrupGallon)}
+							required
+						/>
+					</div>
+				</div>
+			</div>
+			<p class="fieldHint" style="margin-top: -0.5rem;">
+				Shown as individual size prices on the Maple Syrup page.
+			</p>
 
 			<button type="submit" class="btn btnPrimary btnLg" disabled={submitting}>
 				{submitting ? 'Saving…' : 'Save Pricing'}
@@ -101,6 +169,7 @@
 		max-width: 640px;
 		padding: 1rem 2rem;
 	}
+
 	.sectionHeader {
 		margin-bottom: 1.25rem;
 	}
@@ -115,7 +184,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 1.25rem;
-		max-width: 420px;
+		max-width: 480px;
 	}
 
 	.fieldGroup label {
@@ -160,5 +229,41 @@
 		font-size: 0.8rem;
 		color: var(--color-text-muted);
 		margin-top: 0.25rem;
+	}
+
+	/* Maple syrup section divider */
+	.groupDivider {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-top: 0.25rem;
+	}
+
+	.groupDivider::before,
+	.groupDivider::after {
+		content: '';
+		flex: 1;
+		height: 1px;
+		background: var(--color-border);
+	}
+
+	.groupLabel {
+		font-size: 0.8rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--color-text-muted);
+		white-space: nowrap;
+	}
+
+	/* 2×2 grid for the four syrup sizes */
+	.syrupGrid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem 1.25rem;
+	}
+
+	.syrupGrid .priceInput {
+		max-width: 100%;
 	}
 </style>

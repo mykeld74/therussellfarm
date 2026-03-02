@@ -7,7 +7,7 @@
 		{ href: '/admin', label: 'Dashboard', icon: '📊' },
 		{ href: '/admin/bookings', label: 'Bookings', icon: '📋' },
 		{ href: '/admin/availability', label: 'Availability', icon: '📅' },
-		{ href: '/admin/pricing', label: 'Pricing', icon: '💲' }
+		{ href: '/admin/pricing', label: 'Pricing', icon: '🏷️' }
 	];
 
 	const superAdminItems = [{ href: '/admin/users', label: 'Users', icon: '👥' }];

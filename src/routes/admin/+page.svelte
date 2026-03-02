@@ -28,12 +28,12 @@
 	<!-- Stats row -->
 	<div class="statsGrid">
 		<div class="statCard">
-			<span class="statLabel">Today's Bookings</span>
-			<span class="statValue">{data.totalTodayBookings}</span>
+			<span class="statLabel">Booked Slots</span>
+			<span class="statValue">{data.bookedSlots}</span>
 		</div>
 		<div class="statCard">
-			<span class="statLabel">Upcoming Total</span>
-			<span class="statValue">{data.totalUpcomingBookings}</span>
+			<span class="statLabel">Available Slots</span>
+			<span class="statValue">{data.availableSlots}</span>
 		</div>
 		<div class="statCard">
 			<span class="statLabel">Active Slots</span>

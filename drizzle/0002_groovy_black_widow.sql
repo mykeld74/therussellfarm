@@ -1,0 +1,1 @@
+ALTER TABLE "pricing" ADD COLUMN "maple_syrup_price_cents" integer DEFAULT 1200 NOT NULL;

@@ -15,7 +15,15 @@
       "Bash(pnpm db:push)",
       "Bash(pnpm drizzle-kit push --force)",
       "Bash(pnpm dlx drizzle-kit push --yes)",
-      "mcp__svelte__get-documentation"
+      "mcp__svelte__get-documentation",
+      "Bash(pnpm drizzle-kit generate)",
+      "Bash(pnpm drizzle-kit migrate)",
+      "Bash(pnpm drizzle-kit push)",
+      "Bash(printf 'Yes, I want to execute all statements\\\\n')",
+      "Bash(printf '\\\\n\\\\n\\\\n\\\\n\\\\n\\\\n')",
+      "Bash(npx tsx scripts/migrate-maple-syrup.ts)",
+      "Bash(ls /Users/MichaelD/Developer/therussellfarm/.env*)",
+      "Bash(printf '\\\\n\\\\n\\\\n\\\\n')"
     ]
   }
 }

@@ -7,6 +7,13 @@
 		snowCoveredTrees,
 		family
 	} from '$lib/assets';
+	import type { PageData } from './$types';
+
+	let { data }: { data: PageData } = $props();
+
+	function fmt(dollars: number): string {
+		return `$${dollars % 1 === 0 ? dollars.toFixed(0) : dollars.toFixed(2)}`;
+	}
 </script>
 
 <svelte:head>
@@ -29,19 +36,19 @@
 		<div class="pricingGrid">
 			<div class="priceCard">
 				<span class="priceSize">Pint</span>
-				<span class="priceAmount">$10</span>
+				<span class="priceAmount">{fmt(data.pint)}</span>
 			</div>
 			<div class="priceCard">
 				<span class="priceSize">Quart</span>
-				<span class="priceAmount">$18</span>
+				<span class="priceAmount">{fmt(data.quart)}</span>
 			</div>
 			<div class="priceCard">
 				<span class="priceSize">Half Gallon</span>
-				<span class="priceAmount">$30</span>
+				<span class="priceAmount">{fmt(data.halfGallon)}</span>
 			</div>
 			<div class="priceCard">
 				<span class="priceSize">Gallon</span>
-				<span class="priceAmount">$50</span>
+				<span class="priceAmount">{fmt(data.gallon)}</span>
 			</div>
 		</div>
 		<p class="orderNote">

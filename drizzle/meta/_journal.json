@@ -15,6 +15,20 @@
       "when": 1772211901162,
       "tag": "0001_thin_cargill",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772462002705,
+      "tag": "0002_groovy_black_widow",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1772462900000,
+      "tag": "0003_maple_syrup_sizes",
+      "breakpoints": true
     }
   ]
 }

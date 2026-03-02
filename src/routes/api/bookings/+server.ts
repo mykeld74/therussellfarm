@@ -2,7 +2,7 @@ import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { bookings, availabilitySlots } from '$lib/server/db/schema';
-import { eq, count, and, ne, sql } from 'drizzle-orm';
+import { eq, count, and, ne, gte, sql } from 'drizzle-orm';
 import { generateBookingRef, formatDate, formatTime } from '$lib/server/booking-utils';
 import { sendBookingConfirmation } from '$lib/server/email';
 
@@ -44,6 +44,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const parsedSlotId = Number(slotId);
 	if (!Number.isFinite(parsedSlotId)) {
 		return json({ error: 'Invalid slot' }, { status: 400 });
+	}
+
+	// Rate limit: max 3 bookings per email per hour
+	const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+	const [rateCheck] = await db
+		.select({ total: count() })
+		.from(bookings)
+		.where(and(eq(bookings.email, trimmedEmail), gte(bookings.createdAt, oneHourAgo)));
+	if (Number(rateCheck?.total ?? 0) >= 3) {
+		return json({ error: 'Too many bookings. Please try again later.' }, { status: 429 });
 	}
 
 	// Verify slot exists, is active, and has capacity

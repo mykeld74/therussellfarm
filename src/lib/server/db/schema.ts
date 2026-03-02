@@ -42,6 +42,10 @@ export const pricing = pgTable('pricing', {
 	id: serial('id').primaryKey(),
 	treePriceCents: integer('tree_price_cents').notNull().default(6500),
 	experiencePriceCents: integer('experience_price_cents').notNull().default(11000),
+	mapleSyrupPintCents: integer('maple_syrup_pint_cents').notNull().default(1200),
+	mapleSyrupQuartCents: integer('maple_syrup_quart_cents').notNull().default(2000),
+	mapleSyrupHalfGallonCents: integer('maple_syrup_half_gallon_cents').notNull().default(3500),
+	mapleSyrupGallonCents: integer('maple_syrup_gallon_cents').notNull().default(6000),
 	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
 });
 
