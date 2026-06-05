@@ -10,8 +10,10 @@ import horsesInSnow from './horsesInSnow.jpg';
 import newCottage from './newCottage.jpg';
 import newCottageInTheSnow from './newCottageInTheSnow.webp';
 import sapCollection from './sapCollection.webp';
+import russellFarmExperienceThumb from './russellFarmExperienceThumb.jpg';
 import snowCoveredTrees from './snowCoveredTrees.webp';
 import sugaringBarn from './sugaringBarn.webp';
+import russellFarmVideo from './videos/therussellfarm.mp4';
 
 export {
 	blackAndWhiteHorses,
@@ -25,7 +27,9 @@ export {
 	horsesInSnow,
 	newCottage,
 	newCottageInTheSnow,
+	russellFarmExperienceThumb,
 	sapCollection,
 	snowCoveredTrees,
-	sugaringBarn
+	sugaringBarn,
+	russellFarmVideo
 };

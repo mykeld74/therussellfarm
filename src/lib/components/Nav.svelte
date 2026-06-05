@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
 
 	interface NavUser {
 		name: string;
@@ -13,6 +14,7 @@
 
 	let menuOpen = $state(false);
 	let accountOpen = $state(false);
+	let showBookingPrompt = $state(false);
 
 	const canAccessAdmin = $derived(role === 'admin' || role === 'super_admin');
 
@@ -32,6 +34,16 @@
 		accountOpen = false;
 	}
 
+	function handleBookClick(event: MouseEvent) {
+		if (!user) {
+			event.preventDefault();
+			menuOpen = false;
+			showBookingPrompt = true;
+		} else {
+			closeAll();
+		}
+	}
+
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') accountOpen = false;
 	}
@@ -44,6 +56,16 @@
 		return () => {
 			document.removeEventListener('click', onClick, true);
 		};
+	}
+
+	function handleBookWithAccount() {
+		showBookingPrompt = false;
+		goto('/auth/login?next=/book');
+	}
+
+	function handleBookAsGuest() {
+		showBookingPrompt = false;
+		goto('/book');
 	}
 </script>
 
@@ -75,7 +97,7 @@
 				href="/book"
 				class="btnNav"
 				class:active={page.url.pathname.startsWith('/book')}
-				onclick={closeAll}>Book Now</a
+				onclick={handleBookClick}>Book Now</a
 			>
 
 			{#if user}
@@ -264,6 +286,33 @@
 		</nav>
 	</div>
 </header>
+
+{#if showBookingPrompt}
+	<div class="bookingPromptOverlay" role="dialog" aria-modal="true">
+		<div class="bookingPromptCard">
+			<h2>How would you like to book?</h2>
+			<p>
+				You can set up an account to easily manage your bookings, or continue this booking as a
+				guest.
+			</p>
+			<div class="bookingPromptActions">
+				<button type="button" class="btn btnPrimary" onclick={handleBookWithAccount}>
+					Set up an account
+				</button>
+				<button type="button" class="btn btnSecondary" onclick={handleBookAsGuest}>
+					Continue as guest
+				</button>
+			</div>
+			<button
+				type="button"
+				class="bookingPromptClose"
+				onclick={() => (showBookingPrompt = false)}
+			>
+				Maybe later
+			</button>
+		</div>
+	</div>
+{/if}
 
 <style>
 	.siteHeader {
@@ -499,6 +548,58 @@
 	}
 	.menuToggle span.open:nth-child(3) {
 		transform: translateY(-7px) rotate(-45deg);
+	}
+
+	.bookingPromptOverlay {
+		position: fixed;
+		inset: 0;
+		background: rgba(15, 23, 42, 0.55);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 300;
+	}
+
+	.bookingPromptCard {
+		background: var(--color-white);
+		border-radius: var(--radius-lg);
+		padding: 1.75rem;
+		max-width: 420px;
+		width: min(100% - 2rem, 420px);
+		box-shadow: var(--shadow-lg);
+		text-align: left;
+	}
+
+	.bookingPromptCard h2 {
+		font-size: 1.2rem;
+		margin-bottom: 0.35rem;
+		color: var(--color-forest-dk);
+	}
+
+	.bookingPromptCard p {
+		color: var(--color-text-muted);
+		font-size: 0.95rem;
+	}
+
+	.bookingPromptActions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		margin-top: 1.25rem;
+	}
+
+	.bookingPromptClose {
+		margin-top: 0.75rem;
+		background: none;
+		border: none;
+		color: var(--color-text-muted);
+		font-size: 0.9rem;
+		cursor: pointer;
+		padding: 0;
+	}
+
+	.bookingPromptClose:hover {
+		color: var(--color-forest-dk);
 	}
 
 	@media (max-width: 680px) {

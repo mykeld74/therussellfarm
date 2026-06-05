@@ -1,12 +1,34 @@
 <script lang="ts">
+	import ClickToPlayVideo from '$lib/components/ClickToPlayVideo.svelte';
 	import {
 		horseDrawn,
 		newCottageInTheSnow,
 		cottageInTheSnow,
 		carriageInTheSnow,
 		snowCoveredTrees,
-		family
+		family,
+		russellFarmExperienceThumb,
+		russellFarmVideo
 	} from '$lib/assets';
+
+	const videos = [
+		{
+			kind: 'file' as const,
+			title: 'The Russell Farm Experience',
+			src: russellFarmVideo,
+			thumbnail: russellFarmExperienceThumb
+		},
+		{
+			kind: 'youtube' as const,
+			title: 'Vermont Choose and Cut Christmas Tree Farms',
+			id: 'BwmVRL_MALs'
+		},
+		{
+			kind: 'youtube' as const,
+			title: 'Russell Tree Farm',
+			id: 'AyqkM5tFsik'
+		}
+	];
 </script>
 
 <svelte:head>
@@ -125,6 +147,24 @@
 					the wagon. Then take it home.
 				</p>
 			</div>
+		</div>
+	</div>
+</section>
+
+<!-- Videos -->
+<section class="videosSection">
+	<div class="container">
+		<h2 class="sectionTitle">Memories for a Lifetime</h2>
+		<p class="sectionSubtitle">
+			See what makes a visit to The Russell Farm a holiday tradition worth keeping.
+		</p>
+		<div class="videosGrid">
+			{#each videos as video (video.title)}
+				<figure class="videoCard">
+					<ClickToPlayVideo {...video} />
+					<figcaption>{video.title}</figcaption>
+				</figure>
+			{/each}
 		</div>
 	</div>
 </section>
@@ -337,6 +377,31 @@
 		overflow: hidden;
 	}
 
+	/* ── Videos ── */
+	.videosSection {
+		padding: 5rem 0;
+		background: var(--color-cream-dk);
+		border-top: 1px solid var(--color-border);
+		border-bottom: 1px solid var(--color-border);
+	}
+
+	.videosGrid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1.5rem;
+	}
+
+	.videoCard {
+		margin: 0;
+	}
+
+	.videoCard figcaption {
+		margin-top: 0.75rem;
+		text-align: center;
+		font-size: 0.9rem;
+		color: var(--color-text-muted);
+	}
+
 	/* ── How it works ── */
 	.howSection {
 		padding: 5rem 0;
@@ -344,17 +409,15 @@
 	}
 
 	.stepsRow {
-		display: flex;
-		align-items: flex-start;
+		display: grid;
+		grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
 		gap: 0.75rem;
-		justify-content: center;
-		flex-wrap: wrap;
+		align-items: start;
+		max-width: 900px;
+		margin: 0 auto;
 	}
 
 	.step {
-		flex: 1;
-		min-width: 160px;
-		max-width: 200px;
 		text-align: center;
 	}
 
@@ -385,10 +448,13 @@
 	}
 
 	.stepArrow {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 2.5rem;
 		color: var(--color-border);
 		font-size: 1.5rem;
-		padding-top: 0.75rem;
-		flex-shrink: 0;
+		line-height: 1;
 	}
 
 	/* ── CTA Band ── */
@@ -411,6 +477,14 @@
 		font-size: 1.05rem;
 	}
 
+	@media (max-width: 900px) {
+		.videosGrid {
+			grid-template-columns: 1fr;
+			max-width: 560px;
+			margin: 0 auto;
+		}
+	}
+
 	@media (max-width: 768px) {
 		.storyInner {
 			grid-template-columns: 1fr;
@@ -426,7 +500,9 @@
 		}
 
 		.stepsRow {
+			grid-template-columns: 1fr;
 			gap: 1.5rem;
+			max-width: none;
 		}
 	}
 </style>

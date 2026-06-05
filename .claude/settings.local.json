@@ -23,7 +23,8 @@
       "Bash(printf '\\\\n\\\\n\\\\n\\\\n\\\\n\\\\n')",
       "Bash(npx tsx scripts/migrate-maple-syrup.ts)",
       "Bash(ls /Users/MichaelD/Developer/therussellfarm/.env*)",
-      "Bash(printf '\\\\n\\\\n\\\\n\\\\n')"
+      "Bash(printf '\\\\n\\\\n\\\\n\\\\n')",
+      "Bash(node -e \":*)"
     ]
   }
 }
