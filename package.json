@@ -18,7 +18,9 @@
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
 		"db:studio": "drizzle-kit studio",
-		"auth:schema": "npx @better-auth/cli generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes"
+		"auth:schema": "npx @better-auth/cli generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes",
+		"email:preview": "echo 'Open: http://localhost:5173/api/dev/preview-email?type=confirmation'",
+		"email:test": "echo 'Open: http://localhost:5173/api/dev/test-email?to=YOUR_RESEND_ACCOUNT_EMAIL&sandbox=true'"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.2",

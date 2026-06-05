@@ -7,6 +7,16 @@ function getResend(): Resend {
 	return _resend;
 }
 
+type ResendSendPayload = Parameters<Resend['emails']['send']>[0];
+
+async function sendEmail(payload: ResendSendPayload) {
+	const { data, error } = await getResend().emails.send(payload);
+	if (error) {
+		throw new Error(error.message);
+	}
+	return data;
+}
+
 function escapeHtml(str: string): string {
 	return str
 		.replace(/&/g, '&amp;')
@@ -28,7 +38,7 @@ export interface BookingConfirmationData {
 }
 
 export async function sendBookingConfirmation(data: BookingConfirmationData) {
-	return getResend().emails.send({
+	return sendEmail({
 		from: env.FROM_EMAIL,
 		to: data.to,
 		subject: `Booking Confirmed – The Russell Farm (${data.bookingRef})`,
@@ -43,7 +53,7 @@ export interface PasswordResetData {
 }
 
 export async function sendPasswordResetEmail(data: PasswordResetData) {
-	return getResend().emails.send({
+	return sendEmail({
 		from: env.FROM_EMAIL,
 		to: data.to,
 		subject: 'Reset Your Password – The Russell Farm',
@@ -52,12 +62,86 @@ export async function sendPasswordResetEmail(data: PasswordResetData) {
 }
 
 export async function sendBookingCancelled(data: BookingConfirmationData) {
-	return getResend().emails.send({
+	return sendEmail({
 		from: env.FROM_EMAIL,
 		to: data.to,
 		subject: `Booking Cancelled – The Russell Farm (${data.bookingRef})`,
 		html: buildCancelledHtml(data)
 	});
+}
+
+export type TestEmailType = 'confirmation' | 'cancelled' | 'reset' | 'all';
+
+const sampleBooking: Omit<BookingConfirmationData, 'to'> = {
+	name: 'Test Family',
+	bookingRef: 'RF-TEST01',
+	date: 'Saturday, December 6, 2026',
+	startTime: '10:00 AM',
+	endTime: '11:30 AM',
+	adults: 2,
+	kids: 2
+};
+
+const resendSandboxFrom = 'onboarding@resend.dev';
+
+export function getEmailPreviewHtml(type: Exclude<TestEmailType, 'all'>) {
+	const origin = env.ORIGIN || 'http://localhost:5173';
+	const booking = { to: 'preview@example.com', ...sampleBooking };
+
+	if (type === 'confirmation') return buildConfirmationHtml(booking);
+	if (type === 'cancelled') return buildCancelledHtml(booking);
+	return buildPasswordResetHtml({
+		to: 'preview@example.com',
+		name: sampleBooking.name,
+		resetUrl: `${origin}/auth/reset-password?token=test-preview`
+	});
+}
+
+export async function sendTestEmails(
+	to: string,
+	type: TestEmailType = 'all',
+	options?: { sandbox?: boolean }
+) {
+	const origin = env.ORIGIN || 'http://localhost:5173';
+	const from = options?.sandbox ? resendSandboxFrom : env.FROM_EMAIL;
+	const types =
+		type === 'all' ? (['confirmation', 'cancelled', 'reset'] as const) : ([type] as const);
+	const sent: { type: TestEmailType; id: string }[] = [];
+	const booking = { to, ...sampleBooking };
+
+	for (const emailType of types) {
+		if (emailType === 'confirmation') {
+			const result = await sendEmail({
+				from,
+				to,
+				subject: `Booking Confirmed – The Russell Farm (${booking.bookingRef})`,
+				html: buildConfirmationHtml(booking)
+			});
+			sent.push({ type: 'confirmation', id: result?.id ?? '' });
+		} else if (emailType === 'cancelled') {
+			const result = await sendEmail({
+				from,
+				to,
+				subject: `Booking Cancelled – The Russell Farm (${booking.bookingRef})`,
+				html: buildCancelledHtml(booking)
+			});
+			sent.push({ type: 'cancelled', id: result?.id ?? '' });
+		} else if (emailType === 'reset') {
+			const result = await sendEmail({
+				from,
+				to,
+				subject: 'Reset Your Password – The Russell Farm',
+				html: buildPasswordResetHtml({
+					to,
+					name: sampleBooking.name,
+					resetUrl: `${origin}/auth/reset-password?token=test-preview`
+				})
+			});
+			sent.push({ type: 'reset', id: result?.id ?? '' });
+		}
+	}
+
+	return sent;
 }
 
 function buildPasswordResetHtml(data: PasswordResetData): string {

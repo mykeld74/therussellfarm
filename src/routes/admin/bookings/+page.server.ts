@@ -5,7 +5,8 @@ import { eq, desc, and } from 'drizzle-orm';
 
 export const load: PageServerLoad = async ({ url }) => {
 	const dateFilter = url.searchParams.get('date') ?? '';
-	const statusFilter = url.searchParams.get('status') ?? '';
+	const hasStatusParam = url.searchParams.has('status');
+	const statusFilter = hasStatusParam ? (url.searchParams.get('status') ?? '') : 'confirmed';
 	const refFilter = url.searchParams.get('ref') ?? '';
 	const emailFilter = url.searchParams.get('email') ?? '';
 
@@ -13,8 +14,9 @@ export const load: PageServerLoad = async ({ url }) => {
 	if (dateFilter) {
 		conditions.push(eq(availabilitySlots.date, dateFilter));
 	}
-	if (statusFilter && ['pending', 'confirmed', 'cancelled'].includes(statusFilter)) {
-		conditions.push(eq(bookings.status, statusFilter as 'pending' | 'confirmed' | 'cancelled'));
+	const statusToApply = hasStatusParam ? statusFilter : 'confirmed';
+	if (statusToApply && ['pending', 'confirmed', 'cancelled'].includes(statusToApply)) {
+		conditions.push(eq(bookings.status, statusToApply as 'pending' | 'confirmed' | 'cancelled'));
 	}
 	if (refFilter) {
 		conditions.push(eq(bookings.bookingRef, refFilter));

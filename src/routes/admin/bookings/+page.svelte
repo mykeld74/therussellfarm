@@ -72,16 +72,20 @@
 			/>
 		</div>
 		<div class="filterField">
-			<label for="status-filter">Status</label>
-			<select id="status-filter" name="status">
-				<option value="" selected={!data.statusFilter}>All statuses</option>
+			<label for="statusFilter">Status</label>
+			<select
+				id="statusFilter"
+				name="status"
+				onchange={(e) => (e.currentTarget as HTMLSelectElement).form?.requestSubmit()}
+			>
+				<option value="" selected={data.statusFilter === ''}>All statuses</option>
 				<option value="pending" selected={data.statusFilter === 'pending'}>Pending</option>
 				<option value="confirmed" selected={data.statusFilter === 'confirmed'}>Confirmed</option>
 				<option value="cancelled" selected={data.statusFilter === 'cancelled'}>Cancelled</option>
 			</select>
 		</div>
 		<button type="submit" class="btn btnSecondary btnSm">Filter</button>
-		{#if data.dateFilter || data.statusFilter || data.refFilter || data.emailFilter}
+		{#if data.dateFilter || data.refFilter || data.emailFilter || data.statusFilter !== 'confirmed'}
 			<a href="/admin/bookings" class="btn btnSm">Clear</a>
 		{/if}
 	</form>
