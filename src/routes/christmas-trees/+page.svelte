@@ -194,7 +194,7 @@
 </section>
 
 <!-- ── Wreaths & Garland ── -->
-<section class="sectionCream wreathsBand">
+<section class="sectionWhite wreathsBand">
 	<div class="container">
 		<h2 class="sectionTitle">Wreaths &amp; Garland</h2>
 		<p>Hand-made wreaths: $40–$75. Garland: $4 per foot. Please call to order in advance.</p>
@@ -209,15 +209,15 @@
 		<div class="faqList">
 			{#each faqs as faq, i (i)}
 				<div class="faqItem" class:open={openFaq === i}>
-					<button class="faqQuestion" onclick={() => toggleFaq(i)}>
+					<button class="faqQuestion" aria-expanded={openFaq === i} onclick={() => toggleFaq(i)}>
 						<span>{faq.q}</span>
-						<span class="faqIcon">{openFaq === i ? '−' : '+'}</span>
+						<span class="faqIcon" aria-hidden="true">+</span>
 					</button>
-					{#if openFaq === i}
+					<div class="faqAnswerPanel" class:open={openFaq === i}>
 						<div class="faqAnswer">
 							<p>{faq.a}</p>
 						</div>
-					{/if}
+					</div>
 				</div>
 			{/each}
 		</div>
@@ -231,8 +231,8 @@
 		<div class="infoGrid">
 			<div class="visitCard">
 				<h3>Hours</h3>
-				<p><strong>Friday (day after Thanksgiving):</strong> 10 AM – 4 PM</p>
-				<p><strong>Saturdays &amp; Sundays</strong> (through Dec 20): 10 AM – 4 PM</p>
+				<p><strong>Friday (day after Thanksgiving):</strong><br />10 AM – 4 PM</p>
+				<p><strong>Saturdays &amp; Sundays</strong><br />(through Dec 20):<br />10 AM – 4 PM</p>
 				<p class="hoursNote">Open the day after Thanksgiving through December 20th.</p>
 			</div>
 			<div class="visitCard">
@@ -533,20 +533,57 @@
 	}
 
 	.faqIcon {
-		font-size: 1.25rem;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.5rem;
+		height: 1.5rem;
+		font-size: 1.35rem;
+		font-weight: 400;
+		line-height: 1;
 		color: var(--color-forest);
 		flex-shrink: 0;
+		transition: transform 0.35s ease;
+	}
+
+	.faqItem.open .faqIcon {
+		transform: rotate(45deg);
+	}
+
+	.faqAnswerPanel {
+		display: grid;
+		grid-template-rows: 0fr;
+		transition: grid-template-rows 0.35s ease;
+	}
+
+	.faqAnswerPanel.open {
+		grid-template-rows: 1fr;
 	}
 
 	.faqAnswer {
-		padding: 0 1.25rem 1.1rem;
-		border-top: 1px solid var(--color-border);
+		overflow: hidden;
+		padding: 0 1.25rem;
+		border-top: 1px solid transparent;
+		transition: border-color 0.35s ease;
+	}
+
+	.faqAnswerPanel.open .faqAnswer {
+		padding-bottom: 1.1rem;
+		border-top-color: var(--color-border);
 	}
 
 	.faqAnswer p {
 		margin: 1rem 0 0;
 		color: var(--color-text-muted);
 		line-height: 1.7;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.faqIcon,
+		.faqAnswerPanel,
+		.faqAnswer {
+			transition: none;
+		}
 	}
 
 	/* Visit Us */
