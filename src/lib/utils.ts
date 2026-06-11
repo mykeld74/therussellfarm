@@ -30,7 +30,6 @@ export function isUpcoming(dateStr: string): boolean {
 }
 
 export const badgeClass: Record<string, string> = {
-	pending: 'badgePending',
 	confirmed: 'badgeConfirmed',
 	cancelled: 'badgeCancelled'
 };

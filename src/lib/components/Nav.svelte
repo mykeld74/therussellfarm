@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
+	import logo from '$lib/assets/logo.png';
 
 	interface NavUser {
 		name: string;
@@ -73,7 +74,9 @@
 
 <header class="siteHeader">
 	<div class="container navInner">
-		<a href="/" class="wordmark">The Russell Farm</a>
+		<a href="/" class="logoLink" aria-label="The Russell Farm home">
+			<img src={logo} alt="" class="navLogo" width="200" height="48" />
+		</a>
 
 		<button class="menuToggle" onclick={() => (menuOpen = !menuOpen)} aria-label="Toggle menu">
 			<span class:open={menuOpen}></span>
@@ -331,18 +334,20 @@
 		height: 100%;
 	}
 
-	.wordmark {
-		font-family: var(--font-serif);
-		font-size: 1.35rem;
-		font-weight: bold;
-		color: var(--color-cream);
-		text-decoration: none;
-		letter-spacing: -0.01em;
+	.logoLink {
+		display: flex;
+		align-items: center;
 		flex-shrink: 0;
+		text-decoration: none;
+		line-height: 0;
 	}
 
-	.wordmark:hover {
-		color: var(--color-white);
+	.navLogo {
+		display: block;
+		height: 48px;
+		width: auto;
+		max-width: min(200px, 52vw);
+		object-fit: contain;
 	}
 
 	nav {

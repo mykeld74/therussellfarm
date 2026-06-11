@@ -1,5 +1,5 @@
 <script lang="ts">
-	import favicon from '$lib/assets/favicon.svg';
+	import favicon from '$lib/assets/favicon.webp';
 	import Nav from '$lib/components/Nav.svelte';
 	import '$lib/styles/global.css';
 
@@ -7,7 +7,7 @@
 </script>
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
+	<link rel="icon" href={favicon} type="image/webp" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 </svelte:head>
 

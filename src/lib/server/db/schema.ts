@@ -3,7 +3,7 @@ import { relations } from 'drizzle-orm';
 import { user } from './auth.schema';
 
 // --- Enums ---
-export const bookingStatusEnum = pgEnum('booking_status', ['pending', 'confirmed', 'cancelled']);
+export const bookingStatusEnum = pgEnum('booking_status', ['confirmed', 'cancelled']);
 
 // --- availability_slots ---
 // One row = one bookable time window on one calendar date
@@ -30,7 +30,7 @@ export const bookings = pgTable('bookings', {
 	phone: text('phone').notNull(),
 	partySizeAdults: integer('party_size_adults').notNull(),
 	partySizeKids: integer('party_size_kids').notNull().default(0),
-	status: bookingStatusEnum('status').notNull().default('pending'),
+	status: bookingStatusEnum('status').notNull().default('confirmed'),
 	notes: text('notes'),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 });

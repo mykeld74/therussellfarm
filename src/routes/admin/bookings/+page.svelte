@@ -27,7 +27,6 @@
 	}
 
 	const rowStatusClass: Record<string, string> = {
-		pending: 'statusPending',
 		confirmed: 'statusConfirmed',
 		cancelled: 'statusCancelled'
 	};
@@ -79,7 +78,6 @@
 				onchange={(e) => (e.currentTarget as HTMLSelectElement).form?.requestSubmit()}
 			>
 				<option value="" selected={data.statusFilter === ''}>All statuses</option>
-				<option value="pending" selected={data.statusFilter === 'pending'}>Pending</option>
 				<option value="confirmed" selected={data.statusFilter === 'confirmed'}>Confirmed</option>
 				<option value="cancelled" selected={data.statusFilter === 'cancelled'}>Cancelled</option>
 			</select>

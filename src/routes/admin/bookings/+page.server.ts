@@ -15,8 +15,8 @@ export const load: PageServerLoad = async ({ url }) => {
 		conditions.push(eq(availabilitySlots.date, dateFilter));
 	}
 	const statusToApply = hasStatusParam ? statusFilter : 'confirmed';
-	if (statusToApply && ['pending', 'confirmed', 'cancelled'].includes(statusToApply)) {
-		conditions.push(eq(bookings.status, statusToApply as 'pending' | 'confirmed' | 'cancelled'));
+	if (statusToApply && ['confirmed', 'cancelled'].includes(statusToApply)) {
+		conditions.push(eq(bookings.status, statusToApply as 'confirmed' | 'cancelled'));
 	}
 	if (refFilter) {
 		conditions.push(eq(bookings.bookingRef, refFilter));

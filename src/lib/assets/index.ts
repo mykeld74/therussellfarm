@@ -4,7 +4,7 @@ import cottageInTheSnow from './cottageInTheSnow.webp';
 import daveAndBrandon from './daveAndBrandon.webp';
 import distilling from './distilling.webp';
 import family from './family.jpg';
-import favicon from './favicon.svg';
+import favicon from './favicon.webp';
 import horseDrawn from './horseDrawn.jpg';
 import horsesInSnow from './horsesInSnow.jpg';
 import newCottage from './newCottage.jpg';

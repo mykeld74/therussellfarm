@@ -201,11 +201,6 @@ main {
 	letter-spacing: 0.03em;
 }
 
-.badgePending {
-	background: #fef3c7;
-	color: #92400e;
-}
-
 .badgeConfirmed {
 	background: #d1fae5;
 	color: #065f46;

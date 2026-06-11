@@ -16,7 +16,7 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 	const body = await request.json();
 	const { status } = body;
 
-	if (!['confirmed', 'cancelled', 'pending'].includes(status)) {
+	if (!['confirmed', 'cancelled'].includes(status)) {
 		return json({ error: 'Invalid status' }, { status: 400 });
 	}
 
