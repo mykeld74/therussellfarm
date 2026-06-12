@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import PageHero from '$lib/components/PageHero.svelte';
 	import {
 		sugaringBarn,
 		carriageInTheSnow,
@@ -68,7 +69,7 @@
 		},
 		{
 			q: 'How do I cancel or reschedule?',
-			a: "Email us with your booking reference and we'll do our best to accommodate. Cancellations more than 48 hours before are fully refunded."
+			a: 'Sign in to your account to cancel or reschedule your booking.'
 		}
 	];
 
@@ -86,16 +87,14 @@
 </svelte:head>
 
 <!-- Hero -->
-<div class="pageHero">
-	<div class="container">
-		<h1>Christmas Trees</h1>
-		<p>Wagon ride &amp; pick-your-own experience, or cut-your-own in the South Lot</p>
-		<div class="heroLinks">
-			<a href="/book" class="btn btnPrimary">Book the Wagon Experience</a>
-			<a href="#visit" class="btn btnOutlineLight">Hours &amp; Directions</a>
-		</div>
+<PageHero>
+	<h1>Christmas Trees</h1>
+	<p>Wagon ride &amp; pick-your-own experience, or cut-your-own in the South Lot</p>
+	<div class="heroLinks">
+		<a href="/book" class="btn btnPrimary">Book the Wagon Experience</a>
+		<a href="#visit" class="btn btnOutlineLight">Hours &amp; Directions</a>
 	</div>
-</div>
+</PageHero>
 
 <!-- ── Pricing ── -->
 <section class="sectionWhite" id="pricing">
@@ -269,45 +268,6 @@
 </section>
 
 <style>
-	/* Hero */
-	.pageHero {
-		background: linear-gradient(150deg, #1a3d18 0%, var(--color-forest) 60%, #2d5a27 100%);
-		color: var(--color-cream);
-		padding: 4rem 0 3rem;
-		text-align: center;
-	}
-
-	.pageHero h1 {
-		color: var(--color-white);
-		font-size: clamp(1.75rem, 4vw, 2.5rem);
-		margin-bottom: 0.5rem;
-	}
-
-	.pageHero p {
-		color: rgba(249, 245, 238, 0.85);
-		margin: 0 0 1.75rem;
-	}
-
-	.heroLinks {
-		display: flex;
-		gap: 0.75rem;
-		justify-content: center;
-		flex-wrap: wrap;
-	}
-
-	.btnOutlineLight {
-		background: transparent;
-		color: var(--color-cream);
-		border-color: rgba(249, 245, 238, 0.5);
-		border-width: 2px;
-	}
-
-	.btnOutlineLight:hover {
-		background: rgba(255, 255, 255, 0.12);
-		border-color: var(--color-cream);
-		color: var(--color-white);
-	}
-
 	/* Sections */
 	.sectionWhite {
 		padding: 5rem 0;

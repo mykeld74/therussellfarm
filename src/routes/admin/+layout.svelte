@@ -1,16 +1,19 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import AdminNavIcon, { type AdminNavIconName } from '$lib/components/AdminNavIcon.svelte';
 
 	let { children, data } = $props();
 
-	const baseNavItems = [
-		{ href: '/admin', label: 'Dashboard', icon: '📊' },
-		{ href: '/admin/bookings', label: 'Bookings', icon: '📋' },
-		{ href: '/admin/availability', label: 'Availability', icon: '📅' },
-		{ href: '/admin/pricing', label: 'Pricing', icon: '🏷️' }
+	const baseNavItems: { href: string; label: string; icon: AdminNavIconName }[] = [
+		{ href: '/admin', label: 'Dashboard', icon: 'dashboard' },
+		{ href: '/admin/bookings', label: 'Bookings', icon: 'bookings' },
+		{ href: '/admin/availability', label: 'Availability', icon: 'availability' },
+		{ href: '/admin/pricing', label: 'Pricing', icon: 'pricing' }
 	];
 
-	const superAdminItems = [{ href: '/admin/users', label: 'Users', icon: '👥' }];
+	const superAdminItems: { href: string; label: string; icon: AdminNavIconName }[] = [
+		{ href: '/admin/users', label: 'Users', icon: 'users' }
+	];
 
 	const navItems = $derived(
 		data.role === 'super_admin' ? [...baseNavItems, ...superAdminItems] : baseNavItems
@@ -26,7 +29,7 @@
 	<aside class="adminSidebar">
 		<div class="sidebarHeader">
 			<a href="/admin" class="sidebarBrand">
-				<span>🌲</span>
+				<AdminNavIcon name="tree" size={22} />
 				<span>Farm Admin</span>
 			</a>
 		</div>
@@ -34,7 +37,7 @@
 		<nav class="sidebarNav">
 			{#each navItems as item}
 				<a href={item.href} class="sidebarLink" class:active={isActive(item.href)}>
-					<span class="navIcon">{item.icon}</span>
+					<span class="navIcon"><AdminNavIcon name={item.icon} /></span>
 					<span>{item.label}</span>
 				</a>
 			{/each}
@@ -42,7 +45,7 @@
 
 		<div class="sidebarFooter">
 			<a href="/" class="sidebarLink muted">
-				<span class="navIcon">←</span>
+				<span class="navIcon"><AdminNavIcon name="arrowLeft" /></span>
 				<span>Back to Site</span>
 			</a>
 		</div>
@@ -122,9 +125,10 @@
 	}
 
 	.navIcon {
-		font-size: 1rem;
-		width: 1.25rem;
-		text-align: center;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.5rem;
 		flex-shrink: 0;
 	}
 

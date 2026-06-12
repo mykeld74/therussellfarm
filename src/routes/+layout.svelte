@@ -12,6 +12,10 @@
 			if (!document.startViewTransition) return;
 			if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
+			const fromHome = navigation.from?.url.pathname === '/';
+			const toHome = navigation.to?.url.pathname === '/';
+			if (fromHome || toHome) return;
+
 			return new Promise<void>((resolve) => {
 				document.startViewTransition(async () => {
 					resolve();

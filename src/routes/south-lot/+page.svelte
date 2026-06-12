@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import PageHero from '$lib/components/PageHero.svelte';
 
 	let { data }: { data: PageData } = $props();
 </script>
@@ -14,12 +15,10 @@
 	/>
 </svelte:head>
 
-<div class="pageHero">
-	<div class="container">
-		<h1>South Lot</h1>
-		<p>Pre-cut trees or cut-your-own — no wagon ride</p>
-	</div>
-</div>
+<PageHero>
+	<h1>South Lot</h1>
+	<p>Pre-cut trees or cut-your-own — no wagon ride</p>
+</PageHero>
 
 <section class="sectionWhite">
 	<div class="container contentBlock">
@@ -44,24 +43,6 @@
 </section>
 
 <style>
-	.pageHero {
-		background: linear-gradient(150deg, #1a3d18 0%, var(--color-forest) 60%, #2d5a27 100%);
-		color: var(--color-cream);
-		padding: 4rem 0 3rem;
-		text-align: center;
-	}
-
-	.pageHero h1 {
-		color: var(--color-white);
-		font-size: clamp(1.75rem, 4vw, 2.5rem);
-		margin-bottom: 0.5rem;
-	}
-
-	.pageHero p {
-		color: rgba(249, 245, 238, 0.85);
-		margin: 0;
-	}
-
 	.sectionWhite {
 		padding: 4rem 0;
 		background: var(--color-white);

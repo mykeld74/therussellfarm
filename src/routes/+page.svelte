@@ -41,6 +41,7 @@
 
 <!-- Hero -->
 <section class="hero">
+	<div class="heroBackdrop" aria-hidden="true"></div>
 	<div class="heroContent container">
 		<p class="heroEyebrow">Welcome to The Russell Farm</p>
 		<h1>A Christmas Memory<br />Worth Making</h1>
@@ -181,6 +182,16 @@
 <style>
 	/* ── Hero ── */
 	.hero {
+		position: relative;
+		overflow: hidden;
+		color: var(--color-cream);
+		padding: 6rem 0 5rem;
+		text-align: center;
+	}
+
+	.heroBackdrop {
+		position: absolute;
+		inset: 0;
 		background:
 			linear-gradient(
 				150deg,
@@ -189,11 +200,6 @@
 				rgba(0, 0, 0, 0.25) 100%
 			),
 			url('../lib/assets/horseDrawn.jpg') no-repeat center 40% / cover;
-		color: var(--color-cream);
-		padding: 6rem 0 5rem;
-		text-align: center;
-		position: relative;
-		overflow: hidden;
 	}
 
 	.heroContent {
@@ -256,6 +262,7 @@
 
 	.heroScrollHint {
 		position: relative;
+		z-index: 1;
 		color: rgba(249, 245, 238, 0.35);
 		font-size: 1.5rem;
 		margin-top: 3rem;

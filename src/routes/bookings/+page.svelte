@@ -2,6 +2,7 @@
 	import type { PageData } from './$types';
 	import { invalidateAll } from '$app/navigation';
 	import { formatDateLong, formatTime, isUpcoming, badgeClass } from '$lib/utils';
+	import PageHero from '$lib/components/PageHero.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -34,12 +35,10 @@
 	<title>My Bookings – The Russell Farm</title>
 </svelte:head>
 
-<div class="pageHero">
-	<div class="container">
-		<h1>My Bookings</h1>
-		<p>Welcome back, {data.user.name}</p>
-	</div>
-</div>
+<PageHero>
+	<h1>My Bookings</h1>
+	<p>Welcome back, {data.user.name}</p>
+</PageHero>
 
 <div class="bookingsPage container">
 	{#if data.bookings.length === 0}

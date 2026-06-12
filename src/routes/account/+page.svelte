@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import IMask from 'imask';
 	import type { PageData, ActionData } from './$types';
+	import PageHero from '$lib/components/PageHero.svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -28,12 +29,10 @@
 	<title>Account – The Russell Farm</title>
 </svelte:head>
 
-<div class="pageHero">
-	<div class="container">
-		<h1>Account Settings</h1>
-		<p>Manage your profile and password</p>
-	</div>
-</div>
+<PageHero>
+	<h1>Account Settings</h1>
+	<p>Manage your profile and password</p>
+</PageHero>
 
 <div class="accountPage container">
 	<!-- Profile section -->
@@ -144,24 +143,6 @@
 </div>
 
 <style>
-	.pageHero {
-		background: linear-gradient(150deg, #1a3d18 0%, var(--color-forest) 60%, #2d5a27 100%);
-		color: var(--color-cream);
-		padding: 3rem 0 2.5rem;
-		text-align: center;
-	}
-
-	.pageHero h1 {
-		color: var(--color-white);
-		font-size: clamp(1.5rem, 4vw, 2.25rem);
-		margin-bottom: 0.375rem;
-	}
-
-	.pageHero p {
-		color: rgba(249, 245, 238, 0.8);
-		margin: 0;
-	}
-
 	.accountPage {
 		padding: 3rem 1.5rem;
 		display: flex;
