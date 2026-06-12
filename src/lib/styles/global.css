@@ -400,3 +400,48 @@ main {
 .tableRow:hover {
 	background: var(--color-cream);
 }
+
+/* Page transitions (View Transitions API) */
+@media (prefers-reduced-motion: no-preference) {
+	main {
+		view-transition-name: pageMain;
+	}
+
+	::view-transition-old(pageMain),
+	::view-transition-new(pageMain) {
+		animation-duration: 0.28s;
+		animation-timing-function: ease;
+	}
+
+	::view-transition-old(pageMain) {
+		animation-name: pageFadeOut;
+	}
+
+	::view-transition-new(pageMain) {
+		animation-name: pageFadeIn;
+	}
+
+	@keyframes pageFadeOut {
+		from {
+			opacity: 1;
+			transform: translateY(0);
+		}
+
+		to {
+			opacity: 0;
+			transform: translateY(-6px);
+		}
+	}
+
+	@keyframes pageFadeIn {
+		from {
+			opacity: 0;
+			transform: translateY(6px);
+		}
+
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+}

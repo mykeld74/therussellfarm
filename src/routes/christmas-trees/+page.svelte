@@ -1,7 +1,47 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import {
+		sugaringBarn,
+		carriageInTheSnow,
+		snowCoveredTrees,
+		newCottageInTheSnow,
+		family
+	} from '$lib/assets';
 
 	let { data }: { data: PageData } = $props();
+
+	const experienceSteps = [
+		{
+			title: 'Arrive at the Barn',
+			text: "Check in at the farmhouse. We'll point out the best rows for your tree size.",
+			image: sugaringBarn,
+			imageAlt: 'Russell Farm barn in winter'
+		},
+		{
+			title: 'Wagon Ride Out',
+			text: 'Climb aboard the horse-drawn wagon for a scenic ride through the property out to the Christmas tree fields.',
+			image: carriageInTheSnow,
+			imageAlt: 'Horse-drawn wagon in the snow'
+		},
+		{
+			title: 'Browse & Choose',
+			text: "Walk the rows at your own pace. Fraser fir, Douglas fir, and Scotch pine in various heights. Take your time — there's no rush.",
+			image: snowCoveredTrees,
+			imageAlt: 'Snow-covered Christmas trees in the field'
+		},
+		{
+			title: 'Cottage Time',
+			text: 'Head to the cottage for hot chocolate, games, and the fire. While you relax, we cut your tree and load it on the wagon for you.',
+			image: newCottageInTheSnow,
+			imageAlt: 'Russell Farm cottage in the snow'
+		},
+		{
+			title: 'Take It Home',
+			text: "Your tree is cut, wrapped, and ready. We'll help load it onto your vehicle.",
+			image: family,
+			imageAlt: 'Family at Russell Farm'
+		}
+	];
 
 	let openFaq = $state<number | null>(null);
 
@@ -91,52 +131,23 @@
 		<h2 class="sectionTitle">The Wagon Ride Experience</h2>
 		<div class="twoCol">
 			<div class="colText">
-				<div class="experienceSteps">
-					<div class="exStep">
-						<div class="exStepIcon">🏠</div>
-						<div>
-							<h3>1. Arrive at the Barn</h3>
-							<p>Check in at the farmhouse. We'll point out the best rows for your tree size.</p>
-						</div>
-					</div>
-					<div class="exStep">
-						<div class="exStepIcon">🐴</div>
-						<div>
-							<h3>2. Wagon Ride Out</h3>
-							<p>
-								Climb aboard the horse-drawn wagon for a scenic ride through the property out to the
-								Christmas tree fields.
-							</p>
-						</div>
-					</div>
-					<div class="exStep">
-						<div class="exStepIcon">🌲</div>
-						<div>
-							<h3>3. Browse &amp; Choose</h3>
-							<p>
-								Walk the rows at your own pace. Fraser fir, Douglas fir, and Scotch pine in various
-								heights. Take your time — there's no rush.
-							</p>
-						</div>
-					</div>
-					<div class="exStep">
-						<div class="exStepIcon">🏡</div>
-						<div>
-							<h3>4. Cottage Time</h3>
-							<p>
-								Head to the cottage for hot chocolate, games, and the fire. While you relax, we cut
-								your tree and load it on the wagon for you.
-							</p>
-						</div>
-					</div>
-					<div class="exStep">
-						<div class="exStepIcon">🚜</div>
-						<div>
-							<h3>5. Take It Home</h3>
-							<p>Your tree is cut, wrapped, and ready. We'll help load it onto your vehicle.</p>
-						</div>
-					</div>
-				</div>
+				<ol class="experienceTimeline">
+					{#each experienceSteps as step, i (step.title)}
+						<li class="timelineStep">
+							<div class="timelineRail">
+								<span class="stepNumber">{i + 1}</span>
+								{#if i < experienceSteps.length - 1}
+									<span class="timelineLine" aria-hidden="true"></span>
+								{/if}
+							</div>
+							<img src={step.image} alt={step.imageAlt} class="stepPhoto" loading="lazy" />
+							<div class="stepContent">
+								<h3>{step.title}</h3>
+								<p>{step.text}</p>
+							</div>
+						</li>
+					{/each}
+				</ol>
 			</div>
 
 			<div class="colSidebar">
@@ -167,18 +178,12 @@
 					<h3>Tree Varieties</h3>
 					<div class="treeList">
 						<div class="treeItem">
-							<span class="treeEmoji">🌲</span>
-							<div>
-								<strong>Fraser Fir</strong>
-								<p>Excellent needle retention, pleasant scent. A family favourite.</p>
-							</div>
+							<strong>Fraser Fir</strong>
+							<p>Excellent needle retention, pleasant scent. A family favourite.</p>
 						</div>
 						<div class="treeItem">
-							<span class="treeEmoji">🌲</span>
-							<div>
-								<strong>Douglas Fir</strong>
-								<p>Full, classic shape with soft needles. Great for ornaments.</p>
-							</div>
+							<strong>Douglas Fir</strong>
+							<p>Full, classic shape with soft needles. Great for ornaments.</p>
 						</div>
 					</div>
 				</div>
@@ -370,31 +375,71 @@
 		align-items: start;
 	}
 
-	.experienceSteps {
+	.experienceTimeline {
+		list-style: none;
+		margin: 0;
+		padding: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 1.75rem;
 	}
 
-	.exStep {
+	.timelineStep {
+		display: grid;
+		grid-template-columns: 2.5rem 4.75rem 1fr;
+		gap: 0 1.25rem;
+		align-items: start;
+		padding-bottom: 2rem;
+	}
+
+	.timelineStep:last-child {
+		padding-bottom: 0;
+	}
+
+	.timelineRail {
 		display: flex;
-		gap: 1rem;
-		align-items: flex-start;
+		flex-direction: column;
+		align-items: center;
+		height: 100%;
+		min-height: 4.75rem;
 	}
 
-	.exStepIcon {
-		font-size: 1.75rem;
-		flex-shrink: 0;
-		margin-top: 0.15rem;
-	}
-
-	.exStep h3 {
+	.stepNumber {
+		width: 2.5rem;
+		height: 2.5rem;
+		border-radius: 50%;
+		background: var(--color-forest);
+		color: var(--color-white);
+		font-weight: 700;
 		font-size: 1rem;
-		margin-bottom: 0.375rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.timelineLine {
+		flex: 1;
+		width: 2px;
+		margin-top: 0.5rem;
+		background: var(--color-border);
+		min-height: 1.5rem;
+	}
+
+	.stepPhoto {
+		width: 4.75rem;
+		height: 4.75rem;
+		object-fit: cover;
+		border-radius: var(--radius);
+		border: 1px solid var(--color-border);
+	}
+
+	.stepContent h3 {
+		font-size: 1rem;
+		margin: 0 0 0.375rem;
 		color: var(--color-forest);
 	}
 
-	.exStep p {
+	.stepContent p {
 		margin: 0;
 		color: var(--color-text-muted);
 		font-size: 0.95rem;
@@ -452,14 +497,8 @@
 	}
 
 	.treeItem {
-		display: flex;
-		gap: 0.75rem;
-		align-items: flex-start;
-	}
-
-	.treeEmoji {
-		font-size: 1.25rem;
-		flex-shrink: 0;
+		padding-left: 0.85rem;
+		border-left: 3px solid var(--color-forest-lt);
 	}
 
 	.treeItem strong {
@@ -644,6 +683,30 @@
 
 		.colSidebar {
 			order: -1;
+		}
+	}
+
+	@media (max-width: 520px) {
+		.timelineStep {
+			grid-template-columns: 2.5rem 1fr;
+			grid-template-rows: auto auto;
+		}
+
+		.stepPhoto {
+			grid-column: 2;
+			grid-row: 1;
+			width: 100%;
+			height: 8.5rem;
+			margin-bottom: 0.75rem;
+		}
+
+		.stepContent {
+			grid-column: 2;
+			grid-row: 2;
+		}
+
+		.timelineRail {
+			grid-row: 1 / span 2;
 		}
 	}
 </style>
