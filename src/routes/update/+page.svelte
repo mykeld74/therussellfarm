@@ -15,8 +15,9 @@
 <section class="sectionWhite">
 	<div class="container contentBlock">
 		<p>
-			We're open the day after Thanksgiving through December 20th for Christmas trees. Book your wagon
-			experience online or stop by for pre-cut trees and cut-your-own in the South Lot.
+			We're open Friday 11/27, then Saturdays and Sundays through December 20th for Christmas trees.
+			Book your wagon experience online or stop by for pre-cut trees (when available) and cut-your-own
+			in the South Lot.
 		</p>
 		<p>
 			Hand-made wreaths and garland are available — please call ahead to order. Our maple syrup is

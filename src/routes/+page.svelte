@@ -1,8 +1,6 @@
 <script lang="ts">
 	import ClickToPlayVideo from '$lib/components/ClickToPlayVideo.svelte';
 	import {
-		horseDrawn,
-		newCottageInTheSnow,
 		cottageInTheSnow,
 		carriageInTheSnow,
 		snowCoveredTrees,
@@ -35,7 +33,7 @@
 	<title>The Russell Farm – Christmas Tree Experience</title>
 	<meta
 		name="description"
-		content="Pick your tree, relax at the cottage with hot chocolate and the fire, and we'll cut and load it. A family tradition worth making."
+		content="Hop on the horse-drawn ride, pick and cut the perfect tree, then relax at the cabin with hot chocolate and a roaring fire. A family tradition worth making."
 	/>
 </svelte:head>
 
@@ -46,8 +44,8 @@
 		<p class="heroEyebrow">Welcome to The Russell Farm</p>
 		<h1>A Christmas Memory<br />Worth Making</h1>
 		<p class="heroTagline">
-			Hop on the wagon, pick the perfect tree, then relax at the cottage with hot chocolate and the
-			fire while we cut and load it for you.
+			Hop on the horse-drawn ride, pick and cut the perfect tree, then relax at the cabin with hot
+			chocolate and a roaring fire.
 		</p>
 		<div class="heroCtas">
 			<a href="/book" class="btn btnCream btnLg">Book Your Experience</a>
@@ -78,16 +76,16 @@
 				</div>
 				<h3>Pick Your Tree</h3>
 				<p>
-					Walk the rows together and choose your tree. Then head to the cottage for hot chocolate,
-					games, and the fire while we cut it down and load it on the wagon for you.
+					Walk the rows together and cut your own tree. Then head to the cabin for hot chocolate,
+					games, and the fire while we load it on the wagon for you.
 				</p>
 			</div>
 			<div class="featureCard">
 				<div class="featureImage">
 					<img src={family} class="family" alt="Family" />
 				</div>
-				<h3>Family Groups</h3>
-				<p>Booked per family. No crowds, no rush — just your group and the open fields.</p>
+				<h3>Groups</h3>
+				<p>Booked per household. Enjoy the memorable trip together!</p>
 			</div>
 		</div>
 	</div>
@@ -111,7 +109,7 @@
 		</div>
 		<div class="storyImage" aria-hidden="true">
 			<div class="imageContainer">
-				<img src={cottageInTheSnow} alt="The Cottage in the Snow" />
+				<img src={cottageInTheSnow} alt="The Cabin in the Snow" />
 			</div>
 		</div>
 	</div>
@@ -125,7 +123,7 @@
 			<div class="step">
 				<div class="stepNum">1</div>
 				<h3>Book Online</h3>
-				<p>Choose your date and time slot. Limited families per session.</p>
+				<p>Choose your date and time slot. Limited groups per session.</p>
 			</div>
 			<div class="stepArrow">→</div>
 			<div class="step">
@@ -137,15 +135,15 @@
 			<div class="step">
 				<div class="stepNum">3</div>
 				<h3>Pick Your Tree</h3>
-				<p>Walk the rows and choose the one that's just right.</p>
+				<p>Walk the rows and then choose and cut the one that's just right.</p>
 			</div>
 			<div class="stepArrow">→</div>
 			<div class="step">
 				<div class="stepNum">4</div>
-				<h3>Cottage & Load Up</h3>
+				<h3>Cabin & Load Up</h3>
 				<p>
-					Hot chocolate, games, and the fire at the cottage while we cut your tree and load it on
-					the wagon. Then take it home.
+					Hot chocolate, games, and the fire at the cabin while we load up the tree and deliver it
+					to the parking area. Then take it home.
 				</p>
 			</div>
 		</div>

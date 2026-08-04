@@ -41,7 +41,7 @@
 		<div class="bookingDetails">
 			<div class="detailRow">
 				<span class="detailLabel">Experience</span>
-				<span class="detailValue">Christmas Tree Wagon Ride & Cottage Experience</span>
+				<span class="detailValue">Christmas Tree Wagon Ride & Cabin Experience</span>
 			</div>
 			<div class="detailRow">
 				<span class="detailLabel">Date</span>

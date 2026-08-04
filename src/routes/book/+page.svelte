@@ -93,7 +93,7 @@
 	<title>Book Your Experience – The Russell Farm</title>
 	<meta
 		name="description"
-		content="Reserve your Christmas tree wagon ride and cottage experience at The Russell Farm."
+		content="Reserve your Christmas tree wagon ride and cabin experience at The Russell Farm."
 	/>
 </svelte:head>
 
@@ -101,7 +101,7 @@
 	<div class="container">
 		<div class="pageHeader">
 			<h1>Book Your Experience</h1>
-			<p>Christmas Tree Wagon Ride & Cottage Experience · Reserve your family's spot</p>
+			<p>Christmas Tree Wagon Ride & Cabin Experience · Reserve your family's spot</p>
 		</div>
 
 		<!-- Progress indicator -->

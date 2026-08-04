@@ -54,7 +54,7 @@
 			Maple syrup is available year-round. Please call or email to order and arrange pickup.
 		</p>
 		<div class="contactInline">
-			<a href="tel:802-453-2208">802-453-2208</a>
+			<a href="tel:802-373-2032">(802)-373-2032</a>
 			<a href="mailto:Maplehillside@gmail.com">Maplehillside@gmail.com</a>
 		</div>
 		<hr class="sectionDivider" />

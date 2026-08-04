@@ -32,7 +32,10 @@
 <div class="detailsStep">
 	<button class="backBtn" onclick={onBack}>← Back to time slots</button>
 	<h2>Your Details</h2>
-	<p class="stepHint">Tell us a bit about your group so we can get ready for you.</p>
+	<p class="stepHint">
+		Tell us a bit about your group so we can get ready for you. Max of 8 adults or two families per
+		ride.
+	</p>
 
 	<form class="detailsForm" onsubmit={handleSubmit} novalidate>
 		<div class="field">

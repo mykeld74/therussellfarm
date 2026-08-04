@@ -26,19 +26,19 @@
 		},
 		{
 			title: 'Browse & Choose',
-			text: "Walk the rows at your own pace. Fraser fir, Douglas fir, and Scotch pine in various heights. Take your time — there's no rush.",
+			text: "Walk the rows and then choose and cut the one that's just right. Fraser fir, Douglas fir, and Scotch pine in various heights. Take your time — there's no rush.",
 			image: snowCoveredTrees,
 			imageAlt: 'Snow-covered Christmas trees in the field'
 		},
 		{
-			title: 'Cottage Time',
-			text: 'Head to the cottage for hot chocolate, games, and the fire. While you relax, we cut your tree and load it on the wagon for you.',
+			title: 'Cabin Time',
+			text: 'Hot chocolate, games, and the fire at the cabin while we load up the tree and deliver it to the parking area. Then take it home.',
 			image: newCottageInTheSnow,
-			imageAlt: 'Russell Farm cottage in the snow'
+			imageAlt: 'Russell Farm cabin in the snow'
 		},
 		{
 			title: 'Take It Home',
-			text: "Your tree is cut, wrapped, and ready. We'll help load it onto your vehicle.",
+			text: "Your tree is wrapped and ready. We'll help load it onto your vehicle.",
 			image: family,
 			imageAlt: 'Family at Russell Farm'
 		}
@@ -49,7 +49,7 @@
 	const faqs = [
 		{
 			q: 'How long does the experience take?',
-			a: 'Most families spend 1–2 hours with us. The wagon ride is about 15 minutes each way, and the rest of the time is yours to pick your tree and enjoy the cottage.'
+			a: 'Most families spend 1–2 hours with us. The wagon ride is about 15 minutes each way, and the rest of the time is yours to pick and cut your own tree and enjoy the cabin.'
 		},
 		{
 			q: 'What should we wear?',
@@ -60,8 +60,8 @@
 			a: 'Friendly, leashed dogs are welcome! Just be mindful of other families and keep them on lead throughout.'
 		},
 		{
-			q: 'How many families per time slot?',
-			a: 'We keep slots small and intimate — typically just 4–6 families per session, so you never feel rushed or crowded.'
+			q: 'How many people per ride?',
+			a: 'Max of 8 adults or two families'
 		},
 		{
 			q: 'What if the weather is bad?',
@@ -105,9 +105,9 @@
 				<h3>Tree &amp; Horse-Drawn Wagon Ride</h3>
 				<p class="price">${data.experiencePrice.toFixed(0)} per household</p>
 				<p>
-					Our full experience: ride out to the fields, pick your tree, then relax at the cottage
-					with hot chocolate, games, and the fire. We cut your tree and load it on the wagon for
-					you. One tree included per household.
+					Our full experience: ride out to the fields, pick and cut your own tree, then relax at the
+					cabin with hot chocolate, games, and the fire. We load it on the wagon for you. One tree
+					included per household.
 				</p>
 				<a href="/book" class="btn btnPrimary">Book Your Experience</a>
 			</div>
@@ -115,8 +115,9 @@
 				<h3>South Lot — No Wagon Ride</h3>
 				<p class="price">${data.treePrice.toFixed(0)} per tree</p>
 				<p>
-					Pre-cut trees at the barn, or walk out and cut your own in the South Lot. Same great trees
-					— no reservation required. Perfect if you'd prefer to pick and cut on your own.
+					Pre-cut trees at the barn (when available), or walk out and cut your own in the South Lot.
+					Same great trees — no reservation required. Perfect if you'd prefer to pick and cut on
+					your own.
 				</p>
 				<a href="/south-lot" class="btn btnSecondary">More About the South Lot</a>
 			</div>
@@ -168,7 +169,7 @@
 						</div>
 						<div>
 							<dt>We provide</dt>
-							<dd>Wagon ride, hot chocolate, tree cut &amp; loaded, netting for transport</dd>
+							<dd>Wagon ride, hot chocolate, tree loading, netting for transport</dd>
 						</div>
 					</dl>
 				</div>
@@ -235,9 +236,11 @@
 		<div class="infoGrid">
 			<div class="visitCard">
 				<h3>Hours</h3>
-				<p><strong>Friday (day after Thanksgiving):</strong><br />10 AM – 4 PM</p>
+				<p><strong>Friday (Only Friday, 11/27):</strong><br />10 AM – 4 PM</p>
 				<p><strong>Saturdays &amp; Sundays</strong><br />(through Dec 20):<br />10 AM – 4 PM</p>
-				<p class="hoursNote">Open the day after Thanksgiving through December 20th.</p>
+				<p class="hoursNote">
+					Open the day after Thanksgiving, then Saturdays &amp; Sundays through December 20th.
+				</p>
 			</div>
 			<div class="visitCard">
 				<h3>Where</h3>

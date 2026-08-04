@@ -9,7 +9,7 @@
 	<title>South Lot – The Russell Farm</title>
 	<meta
 		name="description"
-		content={`Cut-your-own or pre-cut Christmas trees in the South Lot at The Russell Farm. $${data.treePrice.toFixed(
+		content={`Cut-your-own or pre-cut Christmas trees (when available) in the South Lot at The Russell Farm. $${data.treePrice.toFixed(
 			0
 		)} per tree, no reservation required.`}
 	/>
@@ -17,7 +17,7 @@
 
 <PageHero>
 	<h1>South Lot</h1>
-	<p>Pre-cut trees or cut-your-own — no wagon ride</p>
+	<p>Pre-cut trees (when available) or cut-your-own — no wagon ride</p>
 </PageHero>
 
 <section class="sectionWhite">
@@ -25,7 +25,8 @@
 		<p class="priceLead">${data.treePrice.toFixed(0)} per tree</p>
 		<p>
 			The South Lot is perfect if you'd like to skip the wagon ride and head straight to the trees.
-			Choose from pre-cut trees at the barn or walk out and cut your own in the South Lot.
+			Choose from pre-cut trees at the barn (when available) or walk out and cut your own in the South
+			Lot.
 		</p>
 		<p>
 			Same great trees — Fraser fir, Douglas fir, and Scotch pine — at a lower price when you don't

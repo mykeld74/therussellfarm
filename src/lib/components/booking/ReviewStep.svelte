@@ -41,7 +41,7 @@
 		<div class="reviewCard">
 			<div class="reviewSection">
 				<h3>Experience</h3>
-				<p class="experienceName">Christmas Tree Wagon Ride & Cottage Experience</p>
+				<p class="experienceName">Christmas Tree Wagon Ride & Cabin Experience</p>
 			</div>
 
 			<div class="reviewDivider"></div>

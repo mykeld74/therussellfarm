@@ -65,7 +65,7 @@
 									<span>{formatTime(booking.startTime)} – {formatTime(booking.endTime)}</span>
 								</div>
 								<div class="bookingInfo">
-									<p>Christmas Tree Wagon Ride & Cottage Experience</p>
+									<p>Christmas Tree Wagon Ride & Cabin Experience</p>
 									<p class="partyInfo">
 										{booking.partySizeAdults} adult{booking.partySizeAdults !== 1 ? 's' : ''}
 										{#if booking.partySizeKids > 0}
@@ -105,7 +105,7 @@
 									<span>{formatTime(booking.startTime)} – {formatTime(booking.endTime)}</span>
 								</div>
 								<div class="bookingInfo">
-									<p>Christmas Tree Wagon Ride & Cottage Experience</p>
+									<p>Christmas Tree Wagon Ride & Cabin Experience</p>
 									<p class="partyInfo">
 										{booking.partySizeAdults} adult{booking.partySizeAdults !== 1 ? 's' : ''}
 										{#if booking.partySizeKids > 0}
