@@ -8,8 +8,19 @@
 		newCottageInTheSnow,
 		family
 	} from '$lib/assets';
+	import {
+		getTreeSeasonDates,
+		formatSlashDate,
+		formatShortMonthDay,
+		formatLongMonthDay
+	} from '$lib/holiday-dates';
 
 	let { data }: { data: PageData } = $props();
+
+	const season = getTreeSeasonDates();
+	const openerSlash = formatSlashDate(season.opener);
+	const closerShort = formatShortMonthDay(season.closer);
+	const closerLong = formatLongMonthDay(season.closer);
 
 	const experienceSteps = [
 		{
@@ -236,10 +247,10 @@
 		<div class="infoGrid">
 			<div class="visitCard">
 				<h3>Hours</h3>
-				<p><strong>Friday (Only Friday, 11/27):</strong><br />10 AM – 4 PM</p>
-				<p><strong>Saturdays &amp; Sundays</strong><br />(through Dec 20):<br />10 AM – 4 PM</p>
+				<p><strong>Friday (Only Friday, {openerSlash}):</strong><br />10 AM – 4 PM</p>
+				<p><strong>Saturdays &amp; Sundays</strong><br />(through {closerShort}):<br />10 AM – 4 PM</p>
 				<p class="hoursNote">
-					Open the day after Thanksgiving, then Saturdays &amp; Sundays through December 20th.
+					Open the day after Thanksgiving, then Saturdays &amp; Sundays through {closerLong}.
 				</p>
 			</div>
 			<div class="visitCard">
@@ -265,7 +276,7 @@
 <!-- ── CTA Band ── -->
 <section class="ctaBand">
 	<div class="container">
-		<h2>Open the Day After Thanksgiving – December 20th</h2>
+		<h2>Open the Day After Thanksgiving – {closerLong}</h2>
 		<a href="/book" class="btn btnPrimary btnLg">Reserve Your Slot</a>
 	</div>
 </section>

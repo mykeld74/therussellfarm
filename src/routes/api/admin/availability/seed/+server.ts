@@ -4,25 +4,11 @@ import { db } from '$lib/server/db';
 import { availabilitySlots } from '$lib/server/db/schema';
 import { requireAdmin } from '$lib/server/admin-guard';
 import { and, eq, gte, lte } from 'drizzle-orm';
-
-/** 4th Thursday of November (US Thanksgiving) for the given year */
-function thanksgivingThursday(year: number): Date {
-	const nov1 = new Date(year, 10, 1); // month 10 = November
-	const dayOfWeek = nov1.getDay(); // 0 = Sun, 4 = Thu
-	const daysUntilFirstThu = (4 - dayOfWeek + 7) % 7;
-	const firstThu = new Date(year, 10, 1 + daysUntilFirstThu);
-	firstThu.setDate(firstThu.getDate() + 21);
-	return firstThu;
-}
-
-/** Last Sunday before Christmas (Dec 25) for the given year */
-function lastSundayBeforeChristmas(year: number): Date {
-	const dec24 = new Date(year, 11, 24);
-	while (dec24.getDay() !== 0) {
-		dec24.setDate(dec24.getDate() - 1);
-	}
-	return dec24;
-}
+import {
+	thanksgivingThursday,
+	lastSundayBeforeChristmas,
+	treeSeasonYear
+} from '$lib/holiday-dates';
 
 /** Friday after Thanksgiving, plus all Saturdays and Sundays from that weekend through the last Sunday before Christmas */
 function getHolidayWeekendDates(year: number): string[] {
@@ -74,7 +60,7 @@ function getSlotTimes(): { start: string; end: string }[] {
 export const POST: RequestHandler = async ({ locals }) => {
 	requireAdmin(locals);
 
-	const year = new Date().getFullYear();
+	const year = treeSeasonYear();
 	const dates = getHolidayWeekendDates(year);
 	const slotTimes = getSlotTimes();
 
