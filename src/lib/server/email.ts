@@ -221,6 +221,11 @@ function buildPasswordResetHtml(data: PasswordResetData): string {
 </html>`;
 }
 
+function manageUrl(bookingRef: string): string {
+	const origin = env.ORIGIN || 'http://localhost:5173';
+	return `${origin}/bookings/${encodeURIComponent(bookingRef)}`;
+}
+
 function buildCancelledHtml(data: BookingConfirmationData): string {
 	const name = escapeHtml(data.name);
 	const ref = escapeHtml(data.bookingRef);
@@ -316,6 +321,7 @@ function buildConfirmationHtml(data: BookingConfirmationData): string {
 	const date = escapeHtml(data.date);
 	const start = escapeHtml(data.startTime);
 	const end = escapeHtml(data.endTime);
+	const url = escapeHtml(manageUrl(data.bookingRef));
 
 	return `<!DOCTYPE html>
 <html>
@@ -384,8 +390,22 @@ function buildConfirmationHtml(data: BookingConfirmationData): string {
               </tr>
             </table>
 
+            <table cellpadding="0" cellspacing="0" style="margin:8px 0 24px;">
+              <tr>
+                <td style="background:#2d5a27;border-radius:6px;">
+                  <a href="${url}"
+                    style="display:inline-block;padding:14px 28px;color:#f9f5ee;
+                      font-family:sans-serif;font-size:15px;font-weight:600;
+                      text-decoration:none;">
+                    Review or change your booking
+                  </a>
+                </td>
+              </tr>
+            </table>
+
             <p style="font-family:sans-serif;line-height:1.6;">
-              Please save your booking reference number. You may be asked for it when you arrive.
+              Use the button above to update your group size, reschedule, or cancel.
+              Please also save your booking reference — you may be asked for it when you arrive.
             </p>
             <p style="font-family:sans-serif;line-height:1.6;color:#6b6355;font-size:14px;">
               Questions? Simply reply to this email and we'll get back to you.

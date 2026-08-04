@@ -2,6 +2,7 @@ import type { PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import { availabilitySlots, bookings } from '$lib/server/db/schema';
 import { gte, count, eq, ne, and } from 'drizzle-orm';
+import { bookedSeatsSql } from '$lib/server/booking-seats';
 
 export const load: PageServerLoad = async () => {
 	const today = new Date().toISOString().split('T')[0];
@@ -15,7 +16,8 @@ export const load: PageServerLoad = async () => {
 			maxCapacity: availabilitySlots.maxCapacity,
 			isActive: availabilitySlots.isActive,
 			createdAt: availabilitySlots.createdAt,
-			bookedCount: count(bookings.id)
+			bookedCount: count(bookings.id),
+			bookedSeats: bookedSeatsSql
 		})
 		.from(availabilitySlots)
 		.leftJoin(
@@ -29,11 +31,12 @@ export const load: PageServerLoad = async () => {
 	return {
 		slots: slots.map((s) => {
 			const bookedCount = Number(s.bookedCount);
+			const bookedSeats = Number(s.bookedSeats);
 			return {
 				...s,
 				bookedCount,
-				// One group per slot: remaining is 1 if unbooked, else 0
-				remaining: bookedCount === 0 ? 1 : 0
+				bookedSeats,
+				remaining: Math.max(0, s.maxCapacity - bookedSeats)
 			};
 		})
 	};

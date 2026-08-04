@@ -12,7 +12,8 @@ export const availabilitySlots = pgTable('availability_slots', {
 	date: date('date').notNull(),
 	startTime: time('start_time').notNull(),
 	endTime: time('end_time').notNull(),
-	maxCapacity: integer('max_capacity').notNull().default(6),
+	/** Wagon seat capacity (1 adult = 2 seats, 1 kid = 1 seat). Default 16. */
+	maxCapacity: integer('max_capacity').notNull().default(16),
 	isActive: boolean('is_active').notNull().default(true),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 });

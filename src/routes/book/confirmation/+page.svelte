@@ -76,12 +76,20 @@
 
 		{#if !data.isLoggedIn}
 			<div class="accountCta">
-				<p>Want to manage your booking online?</p>
-				<a href="/auth/login" class="btn btnSecondary">Create an Account</a>
+				<p>Want to see all your bookings in one place?</p>
+				<a href="/auth/login?next=/bookings" class="btn btnSecondary">Sign in / Create account</a>
 			</div>
 		{:else}
 			<a href="/bookings" class="btn btnSecondary">View My Bookings</a>
 		{/if}
+
+		<a
+			href="/bookings/{encodeURIComponent(data.booking.bookingRef)}"
+			class="btn btnPrimary"
+			style="margin-top: 0.75rem; display: inline-block;"
+		>
+			Manage this booking
+		</a>
 
 		<div class="homeLink">
 			<a href="/">← Back to home</a>

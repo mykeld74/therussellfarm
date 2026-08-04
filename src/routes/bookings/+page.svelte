@@ -1,31 +1,9 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { invalidateAll } from '$app/navigation';
 	import { formatDateLong, formatTime, isUpcoming, badgeClass } from '$lib/utils';
 	import PageHero from '$lib/components/PageHero.svelte';
 
 	let { data }: { data: PageData } = $props();
-
-	let cancellingRef = $state<string | null>(null);
-	let cancelError = $state('');
-
-	async function cancelBooking(ref: string) {
-		cancellingRef = ref;
-		cancelError = '';
-		try {
-			const res = await fetch(`/api/bookings/${encodeURIComponent(ref)}`, {
-				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ status: 'cancelled' })
-			});
-			if (!res.ok) throw new Error('Failed to cancel');
-			await invalidateAll();
-		} catch {
-			cancelError = 'Could not cancel booking. Please try again.';
-		} finally {
-			cancellingRef = null;
-		}
-	}
 
 	const upcomingBookings = $derived(data.bookings.filter((b) => isUpcoming(b.date)));
 	const pastBookings = $derived(data.bookings.filter((b) => !isUpcoming(b.date)));
@@ -49,10 +27,6 @@
 			<a href="/book" class="btn btnPrimary">Book an Experience</a>
 		</div>
 	{:else}
-		{#if cancelError}
-			<div class="alert alertError">{cancelError}</div>
-		{/if}
-
 		{#if upcomingBookings.length > 0}
 			<section class="bookingsSection">
 				<h2>Upcoming</h2>
@@ -78,13 +52,12 @@
 								<span class="badge {badgeClass[booking.status]}">{booking.status}</span>
 								<span class="bookingRef">{booking.bookingRef}</span>
 								{#if booking.status !== 'cancelled'}
-									<button
-										class="btn btnDanger btnSm cancelBtn"
-										disabled={cancellingRef === booking.bookingRef}
-										onclick={() => cancelBooking(booking.bookingRef)}
+									<a
+										href="/bookings/{encodeURIComponent(booking.bookingRef)}"
+										class="btn btnSecondary btnSm"
 									>
-										{cancellingRef === booking.bookingRef ? 'Cancelling…' : 'Cancel booking'}
-									</button>
+										Manage
+									</a>
 								{/if}
 							</div>
 						</div>
@@ -192,10 +165,6 @@
 	.bookingCard.past,
 	.bookingCard.cancelled {
 		opacity: 0.7;
-	}
-
-	.cancelBtn {
-		margin-top: 0.35rem;
 	}
 
 	.bookingMain {

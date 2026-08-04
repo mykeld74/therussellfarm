@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import type { BookingStep, BookingFormData, SlotSummary } from '$lib/types';
+	import PartyStep from '$lib/components/booking/PartyStep.svelte';
 	import DateStep from '$lib/components/booking/DateStep.svelte';
 	import TimeStep from '$lib/components/booking/TimeStep.svelte';
 	import DetailsStep from '$lib/components/booking/DetailsStep.svelte';
@@ -10,8 +11,8 @@
 
 	let { data }: { data: PageData } = $props();
 
-	// Wizard state
-	let step: BookingStep = $state('date');
+	// Wizard state — party size first so availability can filter by seats
+	let step: BookingStep = $state('party');
 
 	let formData: BookingFormData = $state(
 		untrack(() => ({
@@ -29,7 +30,14 @@
 	let isSubmitting = $state(false);
 	let submitError = $state('');
 
-	// Step transitions
+	function handlePartySubmit(party: Partial<BookingFormData>) {
+		Object.assign(formData, party);
+		formData.selectedDate = '';
+		formData.selectedSlot = null;
+		formData.slotId = null;
+		step = 'date';
+	}
+
 	function handleDateSelected(date: string) {
 		formData.selectedDate = date;
 		formData.selectedSlot = null;
@@ -66,7 +74,7 @@
 			});
 			if (!res.ok) {
 				const err = await res.json().catch(() => ({}));
-				submitError = err.message ?? 'Booking failed. Please try again.';
+				submitError = err.message ?? err.error ?? 'Booking failed. Please try again.';
 				return;
 			}
 			const { bookingRef } = await res.json();
@@ -78,9 +86,9 @@
 		}
 	}
 
-	// Progress bar
-	const steps: BookingStep[] = ['date', 'time', 'details', 'review'];
+	const steps: BookingStep[] = ['party', 'date', 'time', 'details', 'review'];
 	const stepLabels: Record<BookingStep, string> = {
+		party: 'Your Group',
 		date: 'Pick a Date',
 		time: 'Choose a Time',
 		details: 'Your Details',
@@ -106,7 +114,7 @@
 
 		<!-- Progress indicator -->
 		<div class="progressBar" role="progressbar" aria-label="Booking progress">
-			{#each steps as s, i}
+			{#each steps as s, i (s)}
 				<div class="progressStep" class:completed={i < currentStepIndex} class:current={s === step}>
 					<div class="stepDot">
 						{#if i < currentStepIndex}
@@ -125,11 +133,21 @@
 
 		<!-- Step content -->
 		<div class="stepContent">
-			{#if step === 'date'}
-				<DateStep onDateSelected={handleDateSelected} initialDate={data.firstAvailableDate} />
+			{#if step === 'party'}
+				<PartyStep initialData={formData} onSubmit={handlePartySubmit} />
+			{:else if step === 'date'}
+				<DateStep
+					onDateSelected={handleDateSelected}
+					onBack={() => (step = 'party')}
+					initialDate={data.firstAvailableDate}
+					partySizeAdults={formData.partySizeAdults}
+					partySizeKids={formData.partySizeKids}
+				/>
 			{:else if step === 'time'}
 				<TimeStep
 					date={formData.selectedDate}
+					partySizeAdults={formData.partySizeAdults}
+					partySizeKids={formData.partySizeKids}
 					onSlotSelected={handleSlotSelected}
 					onBack={() => (step = 'date')}
 				/>
@@ -180,7 +198,7 @@
 		justify-content: center;
 		margin-bottom: 3rem;
 		gap: 0;
-		max-width: 560px;
+		max-width: 640px;
 		margin-left: auto;
 		margin-right: auto;
 	}
@@ -237,8 +255,8 @@
 		flex: 1;
 		height: 2px;
 		background: var(--color-border);
-		min-width: 2.5rem;
-		max-width: 5rem;
+		min-width: 1.5rem;
+		max-width: 4rem;
 		margin-bottom: 1.25rem;
 		transition: background 0.2s;
 	}
@@ -247,12 +265,12 @@
 		background: #6ee7b7;
 	}
 
-	@media (max-width: 500px) {
+	@media (max-width: 600px) {
 		.stepLabel {
 			display: none;
 		}
 		.progressConnector {
-			min-width: 1.5rem;
+			min-width: 1rem;
 		}
 	}
 </style>

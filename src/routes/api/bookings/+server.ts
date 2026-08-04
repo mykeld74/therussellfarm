@@ -2,9 +2,10 @@ import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { bookings, availabilitySlots } from '$lib/server/db/schema';
-import { eq, count, and, ne, gte, sql } from 'drizzle-orm';
+import { eq, count, and, gte, sql } from 'drizzle-orm';
 import { generateBookingRef, formatDate, formatTime } from '$lib/server/booking-utils';
 import { sendBookingConfirmation } from '$lib/server/email';
+import { partyFitsWagon, seatsForParty } from '$lib/booking-capacity';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -34,13 +35,17 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const adults = Number(partySizeAdults);
 	const kids = Number(partySizeKids ?? 0);
 
-	if (!Number.isFinite(adults) || adults < 1 || adults > 8) {
-		return json({ error: 'Adults must be between 1 and 8' }, { status: 400 });
-	}
-	if (!Number.isFinite(kids) || kids < 0 || kids > 10) {
-		return json({ error: 'Children must be between 0 and 10' }, { status: 400 });
+	if (!partyFitsWagon(adults, kids)) {
+		return json(
+			{
+				error:
+					'Party must include at least 1 adult and fit one wagon (8 adults or 16 kids, or any mix).'
+			},
+			{ status: 400 }
+		);
 	}
 
+	const seatsNeeded = seatsForParty(adults, kids);
 	const parsedSlotId = Number(slotId);
 	if (!Number.isFinite(parsedSlotId)) {
 		return json({ error: 'Invalid slot' }, { status: 400 });
@@ -56,7 +61,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ error: 'Too many bookings. Please try again later.' }, { status: 429 });
 	}
 
-	// Verify slot exists, is active, and has capacity
 	const [slot] = await db
 		.select({
 			id: availabilitySlots.id,
@@ -64,39 +68,44 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			startTime: availabilitySlots.startTime,
 			endTime: availabilitySlots.endTime,
 			maxCapacity: availabilitySlots.maxCapacity,
-			isActive: availabilitySlots.isActive,
-			bookedCount: count(bookings.id)
+			isActive: availabilitySlots.isActive
 		})
 		.from(availabilitySlots)
-		.leftJoin(
-			bookings,
-			and(eq(bookings.slotId, availabilitySlots.id), ne(bookings.status, 'cancelled'))
-		)
 		.where(eq(availabilitySlots.id, parsedSlotId))
-		.groupBy(availabilitySlots.id);
+		.limit(1);
 
 	if (!slot || !slot.isActive) {
 		error(400, 'Slot not available');
-	}
-	if (Number(slot.bookedCount) > 0) {
-		error(409, 'Slot is fully booked');
 	}
 
 	const bookingRef = generateBookingRef();
 	const userId = locals.user?.id ?? null;
 
-	// Atomic conditional INSERT: only succeeds if no non-cancelled booking exists for this slot
+	// neon-http has no transactions — single conditional INSERT enforces seat capacity.
 	const inserted = await db.execute(sql`
-		INSERT INTO bookings (booking_ref, slot_id, user_id, name, email, phone, party_size_adults, party_size_kids, status)
-		SELECT ${bookingRef}, ${parsedSlotId}, ${userId}, ${trimmedName}, ${trimmedEmail}, ${trimmedPhone}, ${adults}, ${kids}, 'confirmed'
-		WHERE NOT EXISTS (
-			SELECT 1 FROM bookings WHERE slot_id = ${parsedSlotId} AND status != 'cancelled'
+		INSERT INTO bookings (
+			booking_ref, slot_id, user_id, name, email, phone,
+			party_size_adults, party_size_kids, status
+		)
+		SELECT
+			${bookingRef}, ${parsedSlotId}, ${userId}, ${trimmedName},
+			${trimmedEmail}, ${trimmedPhone}, ${adults}, ${kids}, 'confirmed'
+		WHERE EXISTS (
+			SELECT 1 FROM availability_slots
+			WHERE id = ${parsedSlotId} AND is_active = true
+		)
+		AND (
+			SELECT COALESCE(SUM(party_size_adults * 2 + party_size_kids), 0)
+			FROM bookings
+			WHERE slot_id = ${parsedSlotId} AND status != 'cancelled'
+		) + ${seatsNeeded} <= (
+			SELECT max_capacity FROM availability_slots WHERE id = ${parsedSlotId}
 		)
 		RETURNING id, booking_ref
 	`);
 
 	if (!inserted.rows.length) {
-		error(409, 'Slot is fully booked');
+		error(409, 'Not enough seats remaining on this wagon');
 	}
 
 	const newRef = (inserted.rows[0] as { booking_ref: string }).booking_ref;

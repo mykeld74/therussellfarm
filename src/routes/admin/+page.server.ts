@@ -2,6 +2,7 @@ import type { PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import { bookings, availabilitySlots } from '$lib/server/db/schema';
 import { gte, count, eq, ne, and, sql } from 'drizzle-orm';
+import { bookedSeatsSql } from '$lib/server/booking-seats';
 
 export const load: PageServerLoad = async () => {
 	const today = new Date().toISOString().split('T')[0];
@@ -15,6 +16,7 @@ export const load: PageServerLoad = async () => {
 			maxCapacity: availabilitySlots.maxCapacity,
 			isActive: availabilitySlots.isActive,
 			bookedCount: count(bookings.id),
+			bookedSeats: bookedSeatsSql,
 			bookingName: sql<string | null>`max(${bookings.name})`,
 			bookingEmail: sql<string | null>`max(${bookings.email})`,
 			bookingPhone: sql<string | null>`max(${bookings.phone})`
@@ -30,19 +32,18 @@ export const load: PageServerLoad = async () => {
 
 	const mappedSlots = upcomingSlots.map((s) => {
 		const bookedCount = Number(s.bookedCount);
+		const bookedSeats = Number(s.bookedSeats);
+		const remaining = Math.max(0, s.maxCapacity - bookedSeats);
 		return {
 			...s,
 			bookedCount,
-			// One group per slot: remaining is 1 if unbooked, else 0
-			remaining: bookedCount === 0 ? 1 : 0
+			bookedSeats,
+			remaining
 		};
 	});
 
-	// Slots that have a confirmed booking
 	const bookedSlots = mappedSlots.filter((s) => s.bookedCount > 0).length;
-
-	// Active slots with no booking yet
-	const availableSlots = mappedSlots.filter((s) => s.isActive && s.bookedCount === 0).length;
+	const availableSlots = mappedSlots.filter((s) => s.isActive && s.remaining > 0).length;
 
 	return {
 		upcomingSlots: mappedSlots,

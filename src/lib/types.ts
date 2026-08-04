@@ -1,4 +1,4 @@
-export type BookingStep = 'date' | 'time' | 'details' | 'review';
+export type BookingStep = 'party' | 'date' | 'time' | 'details' | 'review';
 
 export interface SlotSummary {
 	id: number;
@@ -7,6 +7,9 @@ export interface SlotSummary {
 	endTime: string;
 	maxCapacity: number;
 	bookedCount: number;
+	/** Seat units already booked (adult*2 + kid). */
+	bookedSeats: number;
+	/** Seat units still available. */
 	remaining: number;
 }
 

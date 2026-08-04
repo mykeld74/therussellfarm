@@ -76,6 +76,7 @@
 						<strong>{data.partySizeKids}</strong>
 					</div>
 				{/if}
+				<p class="shareNote">You may share this wagon with other families until it is full.</p>
 			</div>
 
 			<div class="reviewDivider"></div>
@@ -190,6 +191,13 @@
 
 	.reviewRow strong {
 		color: var(--color-text);
+	}
+
+	.shareNote {
+		margin: 0.75rem 0 0;
+		font-size: 0.85rem;
+		color: var(--color-text-muted);
+		line-height: 1.4;
 	}
 
 	.reviewDivider {

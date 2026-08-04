@@ -36,7 +36,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ error: 'Invalid date format (expected YYYY-MM-DD)' }, { status: 400 });
 	}
 
-	const cap = Number(maxCapacity ?? 1);
+	const cap = Number(maxCapacity ?? 16);
 	if (!Number.isFinite(cap) || cap < 1 || cap > 100) {
 		return json({ error: 'Capacity must be between 1 and 100' }, { status: 400 });
 	}

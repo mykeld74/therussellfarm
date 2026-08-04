@@ -36,6 +36,13 @@
       "when": 1772640000000,
       "tag": "0004_remove_pending_booking_status",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1772800000000,
+      "tag": "0005_wagon_seat_capacity",
+      "breakpoints": true
     }
   ]
 }

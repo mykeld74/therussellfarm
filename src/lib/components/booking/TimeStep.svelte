@@ -1,12 +1,17 @@
 <script lang="ts">
 	import type { SlotSummary } from '$lib/types';
+	import { seatsForParty } from '$lib/booking-capacity';
 
 	let {
 		date,
+		partySizeAdults,
+		partySizeKids,
 		onSlotSelected,
 		onBack
 	}: {
 		date: string;
+		partySizeAdults: number;
+		partySizeKids: number;
 		onSlotSelected: (slot: SlotSummary) => void;
 		onBack: () => void;
 	} = $props();
@@ -14,6 +19,25 @@
 	let slots = $state<SlotSummary[]>([]);
 	let loading = $state(true);
 	let error = $state('');
+
+	let seatsNeeded = $derived(seatsForParty(partySizeAdults, partySizeKids));
+
+	/** Slots that fit this party, partially filled first so wagons fill before new ones open. */
+	let displaySlots = $derived(
+		slots
+			.filter((s) => s.remaining >= seatsNeeded)
+			.slice()
+			.sort((a, b) => {
+				const aPartial = a.bookedSeats > 0 ? 0 : 1;
+				const bPartial = b.bookedSeats > 0 ? 0 : 1;
+				if (aPartial !== bPartial) return aPartial - bPartial;
+				// Fuller wagons first among partials
+				if (aPartial === 0 && b.bookedSeats !== a.bookedSeats) {
+					return b.bookedSeats - a.bookedSeats;
+				}
+				return a.startTime.localeCompare(b.startTime);
+			})
+	);
 
 	$effect(() => {
 		if (date) fetchSlots(date);
@@ -47,42 +71,42 @@
 			day: 'numeric'
 		});
 	}
+
+	function seatLabel(remaining: number): string {
+		if (remaining <= 0) return 'Full';
+		return `${remaining} seat${remaining === 1 ? '' : 's'} left`;
+	}
 </script>
 
 <div class="timeStep">
 	<button class="backBtn" onclick={onBack}>← Back to calendar</button>
 	<h2>Choose a Time</h2>
 	<p class="stepHint">
-		<strong>{formatDisplayDate(date)}</strong> — select a time slot below.
+		<strong>{formatDisplayDate(date)}</strong> — wagons that fit your group are listed first
+		(partially filled wagons preferred).
 	</p>
 
 	{#if loading}
 		<div class="loadingState">Loading time slots…</div>
 	{:else if error}
 		<div class="alert alertError">{error}</div>
-	{:else if slots.length === 0}
+	{:else if displaySlots.length === 0}
 		<div class="emptyState">
-			<p>No time slots are available on this date.</p>
+			<p>No wagons on this date have enough seats for your group.</p>
 			<button class="btn btnSecondary" onclick={onBack}>Choose a different date</button>
 		</div>
 	{:else}
 		<div class="slotsGrid">
-			{#each slots as slot}
-				{@const isFull = slot.remaining <= 0}
-				<button
-					class="slotCard"
-					class:full={isFull}
-					disabled={isFull}
-					onclick={() => onSlotSelected(slot)}
-				>
+			{#each displaySlots as slot (slot.id)}
+				{@const isPartial = slot.bookedSeats > 0}
+				<button class="slotCard" class:partial={isPartial} onclick={() => onSlotSelected(slot)}>
 					<div class="slotTime">
 						{formatTime(slot.startTime)} – {formatTime(slot.endTime)}
 					</div>
-					<div class="slotCapacity" class:full={isFull}>
-						{#if isFull}
-							Booked
-						{:else}
-							Available
+					<div class="slotCapacity">
+						{seatLabel(slot.remaining)}
+						{#if isPartial}
+							<span class="partialTag">Filling up</span>
 						{/if}
 					</div>
 				</button>
@@ -139,15 +163,15 @@
 			box-shadow 0.15s;
 	}
 
-	.slotCard:hover:not(:disabled) {
+	.slotCard:hover {
 		border-color: var(--color-forest);
 		background: #f0faf0;
 		box-shadow: var(--shadow-sm);
 	}
 
-	.slotCard.full {
-		opacity: 0.5;
-		cursor: not-allowed;
+	.slotCard.partial {
+		border-color: #6ee7b7;
+		background: #f0fdf4;
 	}
 
 	.slotTime {
@@ -160,10 +184,21 @@
 	.slotCapacity {
 		font-size: 0.85rem;
 		color: var(--color-forest);
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
 	}
 
-	.slotCapacity.full {
-		color: var(--color-text-muted);
+	.partialTag {
+		font-size: 0.7rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--color-forest-dk);
+		background: #d1fae5;
+		padding: 0.15rem 0.4rem;
+		border-radius: var(--radius);
 	}
 
 	.loadingState,

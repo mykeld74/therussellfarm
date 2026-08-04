@@ -1,13 +1,22 @@
 <script lang="ts">
 	import type { SlotSummary } from '$lib/types';
+	import { seatsForParty } from '$lib/booking-capacity';
 
 	let {
 		onDateSelected,
-		initialDate = null
+		onBack,
+		initialDate = null,
+		partySizeAdults = 1,
+		partySizeKids = 0
 	}: {
 		onDateSelected: (date: string) => void;
+		onBack: () => void;
 		initialDate?: string | null;
+		partySizeAdults?: number;
+		partySizeKids?: number;
 	} = $props();
+
+	let seatsNeeded = $derived(seatsForParty(partySizeAdults, partySizeKids));
 
 	// Calendar state
 	const today = new Date();
@@ -25,12 +34,12 @@
 	let loading = $state(true);
 	let error = $state('');
 
-	// Fetch availability whenever the viewed month changes
+	// Fetch availability whenever the viewed month or party size changes
 	$effect(() => {
-		fetchAvailability(viewYear, viewMonth);
+		fetchAvailability(viewYear, viewMonth, seatsNeeded);
 	});
 
-	async function fetchAvailability(year: number, month: number) {
+	async function fetchAvailability(year: number, month: number, needed: number) {
 		loading = true;
 		error = '';
 		try {
@@ -45,8 +54,8 @@
 			if (!res.ok) throw new Error('Failed to load availability');
 			const slots: SlotSummary[] = await res.json();
 
-			// Build a set of dates that have at least one slot with remaining capacity
-			availableDates = new Set(slots.filter((s) => s.remaining > 0).map((s) => s.date));
+			// Dates with at least one wagon that fits this party
+			availableDates = new Set(slots.filter((s) => s.remaining >= needed).map((s) => s.date));
 		} catch (e) {
 			error = 'Could not load availability. Please try again.';
 		} finally {
@@ -128,8 +137,13 @@
 </script>
 
 <div class="dateStep">
+	<button class="backBtn" onclick={onBack}>← Back to group size</button>
 	<h2>Pick a Date</h2>
-	<p class="stepHint">Select an available date from the calendar below.</p>
+	<p class="stepHint">
+		Showing dates with a wagon that fits your group ({partySizeAdults} adult{partySizeAdults === 1
+			? ''
+			: 's'}{#if partySizeKids > 0}, {partySizeKids} child{partySizeKids === 1 ? '' : 'ren'}{/if}).
+	</p>
 
 	<div class="calendarCard">
 		<!-- Month navigation -->
@@ -143,7 +157,7 @@
 
 		<!-- Day labels -->
 		<div class="calGrid calWeekdays">
-			{#each ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as day}
+			{#each ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as day (day)}
 				<div class="weekday">{day}</div>
 			{/each}
 		</div>
@@ -155,7 +169,7 @@
 		{:else}
 			<!-- Day grid -->
 			<div class="calGrid calDays">
-				{#each calendarDays as cell}
+				{#each calendarDays as cell, i (cell.date ?? `empty-${i}`)}
 					{#if cell.date === null}
 						<div class="calCell empty"></div>
 					{:else}
@@ -199,6 +213,22 @@
 	.stepHint {
 		color: var(--color-text-muted);
 		margin-bottom: 1.5rem;
+	}
+
+	.backBtn {
+		background: none;
+		border: none;
+		color: var(--color-forest);
+		cursor: pointer;
+		font-size: 0.9rem;
+		padding: 0;
+		margin-bottom: 1.25rem;
+		font-family: var(--font-sans);
+		transition: color 0.15s;
+	}
+
+	.backBtn:hover {
+		color: var(--color-forest-dk);
 	}
 
 	.calendarCard {

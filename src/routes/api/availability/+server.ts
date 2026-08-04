@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { availabilitySlots, bookings } from '$lib/server/db/schema';
 import { and, gte, lte, eq, ne, count } from 'drizzle-orm';
+import { bookedSeatsSql } from '$lib/server/booking-seats';
 
 export const GET: RequestHandler = async ({ url }) => {
 	const from = url.searchParams.get('from');
@@ -19,7 +20,8 @@ export const GET: RequestHandler = async ({ url }) => {
 			startTime: availabilitySlots.startTime,
 			endTime: availabilitySlots.endTime,
 			maxCapacity: availabilitySlots.maxCapacity,
-			bookedCount: count(bookings.id)
+			bookedCount: count(bookings.id),
+			bookedSeats: bookedSeatsSql
 		})
 		.from(availabilitySlots)
 		.leftJoin(
@@ -38,11 +40,13 @@ export const GET: RequestHandler = async ({ url }) => {
 
 	const slotsWithRemaining = slots.map((s) => {
 		const bookedCount = Number(s.bookedCount);
+		const bookedSeats = Number(s.bookedSeats);
+		const remaining = Math.max(0, s.maxCapacity - bookedSeats);
 		return {
 			...s,
 			bookedCount,
-			// Each slot is for one group: remaining is 1 if unbooked, else 0
-			remaining: bookedCount === 0 ? 1 : 0
+			bookedSeats,
+			remaining
 		};
 	});
 

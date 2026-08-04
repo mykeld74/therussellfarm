@@ -18,24 +18,19 @@
 	let name = $state(untrack(() => initialData.name));
 	let email = $state(untrack(() => initialData.email));
 	let phone = $state(untrack(() => initialData.phone));
-	let partySizeAdults = $state(untrack(() => initialData.partySizeAdults ?? 0));
-	let partySizeKids = $state(untrack(() => initialData.partySizeKids ?? 0));
 
 	const phoneMaskConfig = { mask: '(000) 000-0000' };
 
 	function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
-		onSubmit({ name, email, phone, partySizeAdults, partySizeKids });
+		onSubmit({ name, email, phone });
 	}
 </script>
 
 <div class="detailsStep">
 	<button class="backBtn" onclick={onBack}>← Back to time slots</button>
 	<h2>Your Details</h2>
-	<p class="stepHint">
-		Tell us a bit about your group so we can get ready for you. Max of 8 adults or two families per
-		ride.
-	</p>
+	<p class="stepHint">Where should we send your confirmation?</p>
 
 	<form class="detailsForm" onsubmit={handleSubmit} novalidate>
 		<div class="field">
@@ -76,61 +71,11 @@
 			/>
 		</div>
 
-		<div class="partyRow">
-			<div class="field">
-				<label for="adults">Adults</label>
-				<div class="numberInput">
-					<button
-						type="button"
-						onclick={() => (partySizeAdults = Math.max(0, partySizeAdults - 1))}
-						aria-label="Decrease adults">−</button
-					>
-					<input
-						id="adults"
-						type="number"
-						bind:value={partySizeAdults}
-						min="0"
-						max="8"
-						readonly
-					/>
-					<button
-						type="button"
-						onclick={() => (partySizeAdults = Math.min(8, partySizeAdults + 1))}
-						aria-label="Increase adults">+</button
-					>
-				</div>
-			</div>
-
-			<div class="field">
-				<label for="kids">Children</label>
-				<div class="numberInput">
-					<button
-						type="button"
-						onclick={() => (partySizeKids = Math.max(0, partySizeKids - 1))}
-						aria-label="Decrease children">−</button
-					>
-					<input
-						id="kids"
-						type="number"
-						bind:value={partySizeKids}
-						min="0"
-						max="10"
-						readonly
-					/>
-					<button
-						type="button"
-						onclick={() => (partySizeKids = Math.min(10, partySizeKids + 1))}
-						aria-label="Increase children">+</button
-					>
-				</div>
-			</div>
-		</div>
-
 		<button
 			type="submit"
 			class="btn btnPrimary btnLg"
 			style="width: 100%; margin-top: 0.5rem;"
-			disabled={!name || !email || !phone || partySizeAdults < 1}
+			disabled={!name || !email || !phone}
 		>
 			Continue to Review →
 		</button>
@@ -172,58 +117,5 @@
 	.fieldHint {
 		font-size: 0.8rem;
 		color: var(--color-text-muted);
-	}
-
-	.partyRow {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 1rem;
-	}
-
-	.numberInput {
-		display: flex;
-		align-items: center;
-		border: 1.5px solid var(--color-border);
-		border-radius: var(--radius);
-		overflow: hidden;
-		background: var(--color-white);
-	}
-
-	.numberInput input {
-		width: 100%;
-		text-align: center;
-		border: none;
-		padding: 0.65rem 0;
-		font-size: 1rem;
-		font-family: var(--font-sans);
-		color: var(--color-text);
-		pointer-events: none;
-	}
-
-	.numberInput input:focus {
-		outline: none;
-	}
-
-	.numberInput button {
-		background: var(--color-cream-dk);
-		border: none;
-		border-right: 1.5px solid var(--color-border);
-		width: 2.5rem;
-		height: 100%;
-		font-size: 1.25rem;
-		cursor: pointer;
-		color: var(--color-forest);
-		transition: background 0.15s;
-		flex-shrink: 0;
-		padding: 0;
-	}
-
-	.numberInput button:last-child {
-		border-right: none;
-		border-left: 1.5px solid var(--color-border);
-	}
-
-	.numberInput button:hover {
-		background: var(--color-border);
 	}
 </style>

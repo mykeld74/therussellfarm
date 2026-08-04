@@ -63,19 +63,29 @@
 					<span>Phone</span>
 				</div>
 				{#each data.upcomingSlots as slot (slot.id)}
-					<div class="tableRow" class:nearlyFull={slot.remaining <= 1 && slot.remaining > 0}>
+					<div class="tableRow" class:nearlyFull={slot.remaining <= 2 && slot.remaining > 0}>
 						<span class="cellDate">{formatDate(slot.date)}</span>
 						<span>{formatTime(slot.startTime)} – {formatTime(slot.endTime)}</span>
-						<span>
-							{#if slot.isActive && slot.remaining > 0}
-								<span class="badge badgeConfirmed">Available</span>
+						<span class="cellStatus">
+							{#if !slot.isActive}
+								<span class="badge badgeCancelled">Inactive</span>
+							{:else if slot.remaining <= 0}
+								<span class="badge badgeCancelled">Full</span>
 							{:else}
-								<span class="badge badgeCancelled">Booked</span>
+								<span class="badge badgeConfirmed">{slot.remaining} seats left</span>
 							{/if}
 						</span>
-						<span class="cellContact">{slot.bookingName ?? '—'}</span>
-						<span class="cellContact">{slot.bookingEmail ?? '—'}</span>
-						<span class="cellContact">{formatPhone(slot.bookingPhone)}</span>
+						<span class="cellContact">
+							{#if slot.bookedCount > 1}
+								{slot.bookedCount} groups
+							{:else}
+								{slot.bookingName ?? '—'}
+							{/if}
+						</span>
+						<span class="cellContact">{slot.bookedCount > 1 ? '—' : (slot.bookingEmail ?? '—')}</span>
+						<span class="cellContact"
+							>{slot.bookedCount > 1 ? '—' : formatPhone(slot.bookingPhone)}</span
+						>
 					</div>
 				{/each}
 			</div>
@@ -87,7 +97,7 @@
 	/* Grid columns specific to this dashboard table */
 	.tableHeader,
 	.tableRow {
-		grid-template-columns: 140px 180px 100px 1fr 1fr 120px;
+		grid-template-columns: 140px 170px 130px 1fr 1fr 120px;
 	}
 
 	.slotsTable {
@@ -113,6 +123,10 @@
 
 	.cellDate {
 		font-weight: 600;
+	}
+
+	.cellStatus {
+		white-space: nowrap;
 	}
 
 	.cellContact {

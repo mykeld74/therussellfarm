@@ -20,8 +20,8 @@
 	let newStartTime = $state('10:00');
 	let newEndTime = $state('');
 	let endTimeTouched = $state(false);
-	// Each slot is for one group; capacity is fixed at 1
-	let newCapacity = $state(1);
+	// Wagon seat capacity (1 adult = 2 seats, 1 kid = 1 seat)
+	let newCapacity = $state(16);
 	let formError = $state('');
 	let formSuccess = $state('');
 	let submitting = $state(false);
@@ -220,7 +220,7 @@
 				</div>
 
 				<div class="field">
-					<label for="capacity">Max Groups (capacity)</label>
+					<label for="capacity">Wagon seats (capacity)</label>
 					<div class="numberInput">
 						<button type="button" onclick={() => (newCapacity = Math.max(1, newCapacity - 1))}
 							>−</button
@@ -230,6 +230,7 @@
 							>+</button
 						>
 					</div>
+					<span class="fieldHint">Default 16 — 1 adult = 2 seats, 1 child = 1 seat.</span>
 				</div>
 
 				<button
@@ -302,9 +303,14 @@
 
 							<div class="slotCap">
 								{#if slot.remaining > 0}
-									<span class="badge badgeConfirmed">Available</span>
+									<span class="badge badgeConfirmed"
+										>{slot.remaining}/{slot.maxCapacity} seats
+										{#if slot.bookedCount > 0}
+											· {slot.bookedCount} group{slot.bookedCount === 1 ? '' : 's'}
+										{/if}
+									</span>
 								{:else}
-									<span class="badge badgeCancelled">Booked</span>
+									<span class="badge badgeCancelled">Full</span>
 								{/if}
 							</div>
 
@@ -409,6 +415,14 @@
 		color: var(--color-text-muted);
 		margin-bottom: 0.3rem;
 		display: block;
+	}
+
+	.slotForm .fieldHint {
+		display: block;
+		font-size: 0.75rem;
+		color: var(--color-text-muted);
+		margin-top: 0.35rem;
+		line-height: 1.3;
 	}
 
 	.slotForm input {

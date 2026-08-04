@@ -61,7 +61,7 @@
 		},
 		{
 			q: 'How many people per ride?',
-			a: 'Max of 8 adults or two families'
+			a: 'Each wagon holds up to 8 adults or 16 children (one adult uses two child seats). Multiple families can share a wagon until it is full.'
 		},
 		{
 			q: 'What if the weather is bad?',
@@ -69,7 +69,7 @@
 		},
 		{
 			q: 'How do I cancel or reschedule?',
-			a: 'Sign in to your account to cancel or reschedule your booking.'
+			a: 'Use the link in your confirmation email, or sign in and open Manage on your booking. You can change your group size, date and time, contact details, or cancel.'
 		}
 	];
 

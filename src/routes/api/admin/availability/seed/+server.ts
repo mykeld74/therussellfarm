@@ -101,8 +101,8 @@ export const POST: RequestHandler = async ({ locals }) => {
 				date,
 				startTime: start,
 				endTime: end,
-				// One group per slot
-				maxCapacity: 1,
+				// Wagon seat capacity (1 adult = 2 seats, 1 kid = 1 seat)
+				maxCapacity: 16,
 				isActive: true
 			});
 		}
