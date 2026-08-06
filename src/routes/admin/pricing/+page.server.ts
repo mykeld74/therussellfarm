@@ -22,6 +22,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		.select({
 			id: pricing.id,
 			treePriceCents: pricing.treePriceCents,
+			treeOveragePerFootCents: pricing.treeOveragePerFootCents,
 			experiencePriceCents: pricing.experiencePriceCents,
 			mapleSyrupPintCents: pricing.mapleSyrupPintCents,
 			mapleSyrupQuartCents: pricing.mapleSyrupQuartCents,
@@ -35,6 +36,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const current = row ?? {
 		id: SINGLE_PRICING_ID,
 		treePriceCents: 6500,
+		treeOveragePerFootCents: 1000,
 		experiencePriceCents: 11000,
 		mapleSyrupPintCents: 1200,
 		mapleSyrupQuartCents: 2000,
@@ -48,6 +50,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	return {
 		treePrice: current.treePriceCents / 100,
+		treeOveragePerFoot: current.treeOveragePerFootCents / 100,
 		experiencePrice: current.experiencePriceCents / 100,
 		mapleSyrupPint: current.mapleSyrupPintCents / 100,
 		mapleSyrupQuart: current.mapleSyrupQuartCents / 100,
@@ -63,6 +66,7 @@ export const actions: Actions = {
 		const form = await request.formData();
 		const raw = {
 			treePrice: form.get('treePrice')?.toString() ?? '',
+			treeOveragePerFoot: form.get('treeOveragePerFoot')?.toString() ?? '',
 			experiencePrice: form.get('experiencePrice')?.toString() ?? '',
 			mapleSyrupPint: form.get('mapleSyrupPint')?.toString() ?? '',
 			mapleSyrupQuart: form.get('mapleSyrupQuart')?.toString() ?? '',
@@ -72,6 +76,7 @@ export const actions: Actions = {
 
 		const fields: [string, string, string][] = [
 			['treePrice', raw.treePrice, 'Tree price'],
+			['treeOveragePerFoot', raw.treeOveragePerFoot, 'Per-foot overage'],
 			['experiencePrice', raw.experiencePrice, 'Experience price'],
 			['mapleSyrupPint', raw.mapleSyrupPint, 'Pint price'],
 			['mapleSyrupQuart', raw.mapleSyrupQuart, 'Quart price'],
@@ -86,8 +91,8 @@ export const actions: Actions = {
 			}
 		}
 
-		// All values are valid — safe to cast
 		const treePrice = Number(raw.treePrice);
+		const treeOveragePerFoot = Number(raw.treeOveragePerFoot);
 		const experiencePrice = Number(raw.experiencePrice);
 		const mapleSyrupPint = Number(raw.mapleSyrupPint);
 		const mapleSyrupQuart = Number(raw.mapleSyrupQuart);
@@ -97,6 +102,7 @@ export const actions: Actions = {
 		const values = {
 			id: SINGLE_PRICING_ID,
 			treePriceCents: treePrice * 100,
+			treeOveragePerFootCents: treeOveragePerFoot * 100,
 			experiencePriceCents: experiencePrice * 100,
 			mapleSyrupPintCents: mapleSyrupPint * 100,
 			mapleSyrupQuartCents: mapleSyrupQuart * 100,

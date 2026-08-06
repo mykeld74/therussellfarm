@@ -67,7 +67,7 @@
 			</div>
 
 			<div class="fieldGroup">
-				<label for="treePrice">Tree Only (South Lot)</label>
+				<label for="treePrice">Tree Only (South Lot, up to 7 ft)</label>
 				<div class="priceInput">
 					<span class="currency">$</span>
 					<input
@@ -80,7 +80,28 @@
 						required
 					/>
 				</div>
-				<p class="fieldHint">Shown as "per tree" on the Christmas Trees and South Lot pages.</p>
+				<p class="fieldHint">Base price for trees 7 feet and under.</p>
+			</div>
+
+			<div class="fieldGroup">
+				<label for="treeOveragePerFoot">Extra per foot over 7 ft</label>
+				<div class="priceInput">
+					<span class="currency">$</span>
+					<input
+						id="treeOveragePerFoot"
+						name="treeOveragePerFoot"
+						type="number"
+						min="1"
+						step="1"
+						value={fieldVal('treeOveragePerFoot', data.treeOveragePerFoot)}
+						required
+					/>
+				</div>
+				<p class="fieldHint">
+					Added for each foot above 7. Example: a 12 ft tree =
+					${data.treePrice.toFixed(0)} + (${data.treeOveragePerFoot.toFixed(0)} × 5) =
+					${(data.treePrice + data.treeOveragePerFoot * 5).toFixed(0)}.
+				</p>
 			</div>
 
 			<!-- Maple Syrup -->

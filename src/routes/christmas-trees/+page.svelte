@@ -22,6 +22,11 @@
 	const closerShort = formatShortMonthDay(season.closer);
 	const closerLong = formatLongMonthDay(season.closer);
 
+	const treeBasePrice = $derived(data.treePrice);
+	const treeOveragePerFoot = $derived(data.treeOveragePerFoot);
+	const exampleFeetOver = 5; // 12 ft − 7 ft
+	const exampleTotal = $derived(treeBasePrice + treeOveragePerFoot * exampleFeetOver);
+
 	const experienceSteps = [
 		{
 			title: 'Arrive at the Barn',
@@ -37,7 +42,7 @@
 		},
 		{
 			title: 'Browse & Choose',
-			text: "Walk the rows and then choose and cut the one that's just right. Fraser fir, Douglas fir, and Scotch pine in various heights. Take your time — there's no rush.",
+			text: "Walk the rows and then choose and cut the one that's just right. Balsam fir and Fraser fir in various heights. Take your time — there's no rush.",
 			image: snowCoveredTrees,
 			imageAlt: 'Snow-covered Christmas trees in the field'
 		},
@@ -124,7 +129,7 @@
 			</div>
 			<div class="optionCard">
 				<h3>South Lot — No Wagon Ride</h3>
-				<p class="price">${data.treePrice.toFixed(0)} per tree</p>
+				<p class="price">${data.treePrice.toFixed(0)} per tree <span class="priceNote">(up to 7 ft)</span></p>
 				<p>
 					Pre-cut trees at the barn (when available), or walk out and cut your own in the South Lot.
 					Same great trees — no reservation required. Perfect if you'd prefer to pick and cut on
@@ -133,6 +138,11 @@
 				<a href="/south-lot" class="btn btnSecondary">More About the South Lot</a>
 			</div>
 		</div>
+		<p class="treePricingNote">
+			Trees 7 feet and under are ${treeBasePrice.toFixed(0)}. For trees taller than 7 feet, add
+			${treeOveragePerFoot} per additional foot. For example, a 12-foot tree is ${treeBasePrice.toFixed(0)}
+			+ (${treeOveragePerFoot} × {exampleFeetOver} ft) = ${exampleTotal.toFixed(0)}.
+		</p>
 	</div>
 </section>
 
@@ -189,12 +199,12 @@
 					<h3>Tree Varieties</h3>
 					<div class="treeList">
 						<div class="treeItem">
-							<strong>Fraser Fir</strong>
-							<p>Excellent needle retention, pleasant scent. A family favourite.</p>
+							<strong>Balsam Fir</strong>
+							<p>Classic Vermont fragrance and soft needles. A traditional favourite.</p>
 						</div>
 						<div class="treeItem">
-							<strong>Douglas Fir</strong>
-							<p>Full, classic shape with soft needles. Great for ornaments.</p>
+							<strong>Fraser Fir</strong>
+							<p>Excellent needle retention, pleasant scent. A family favourite.</p>
 						</div>
 					</div>
 				</div>
@@ -335,10 +345,26 @@
 		margin-bottom: 1rem;
 	}
 
+	.optionCard .priceNote {
+		font-family: var(--font-sans);
+		font-size: 0.95rem;
+		font-weight: 500;
+		color: var(--color-text-muted);
+	}
+
 	.optionCard p {
 		color: var(--color-text-muted);
 		margin-bottom: 1.25rem;
 		line-height: 1.65;
+	}
+
+	.treePricingNote {
+		max-width: 40rem;
+		margin: 1.75rem auto 0;
+		text-align: center;
+		font-size: 0.95rem;
+		line-height: 1.6;
+		color: var(--color-text-muted);
 	}
 
 	/* Experience two-column */

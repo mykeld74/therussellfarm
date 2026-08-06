@@ -9,16 +9,17 @@ export const load: PageServerLoad = async () => {
 	const [row] = await db
 		.select({
 			id: pricing.id,
-			treePriceCents: pricing.treePriceCents
+			treePriceCents: pricing.treePriceCents,
+			treeOveragePerFootCents: pricing.treeOveragePerFootCents
 		})
 		.from(pricing)
 		.where(eq(pricing.id, SINGLE_PRICING_ID))
 		.limit(1);
 
-	const current = row ?? { treePriceCents: 6500 };
+	const current = row ?? { treePriceCents: 6500, treeOveragePerFootCents: 1000 };
 
 	return {
-		treePrice: current.treePriceCents / 100
+		treePrice: current.treePriceCents / 100,
+		treeOveragePerFoot: current.treeOveragePerFootCents / 100
 	};
 };
-

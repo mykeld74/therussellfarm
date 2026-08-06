@@ -42,6 +42,8 @@ export const bookings = pgTable('bookings', {
 export const pricing = pgTable('pricing', {
 	id: serial('id').primaryKey(),
 	treePriceCents: integer('tree_price_cents').notNull().default(6500),
+	/** Extra charge per foot above 7 ft, in cents (e.g. 1000 = $10/ft). */
+	treeOveragePerFootCents: integer('tree_overage_per_foot_cents').notNull().default(1000),
 	experiencePriceCents: integer('experience_price_cents').notNull().default(11000),
 	mapleSyrupPintCents: integer('maple_syrup_pint_cents').notNull().default(1200),
 	mapleSyrupQuartCents: integer('maple_syrup_quart_cents').notNull().default(2000),

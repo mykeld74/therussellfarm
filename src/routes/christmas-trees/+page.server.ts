@@ -10,17 +10,22 @@ export const load: PageServerLoad = async () => {
 		.select({
 			id: pricing.id,
 			treePriceCents: pricing.treePriceCents,
+			treeOveragePerFootCents: pricing.treeOveragePerFootCents,
 			experiencePriceCents: pricing.experiencePriceCents
 		})
 		.from(pricing)
 		.where(eq(pricing.id, SINGLE_PRICING_ID))
 		.limit(1);
 
-	const current = row ?? { treePriceCents: 6500, experiencePriceCents: 11000 };
+	const current = row ?? {
+		treePriceCents: 6500,
+		treeOveragePerFootCents: 1000,
+		experiencePriceCents: 11000
+	};
 
 	return {
 		treePrice: current.treePriceCents / 100,
+		treeOveragePerFoot: current.treeOveragePerFootCents / 100,
 		experiencePrice: current.experiencePriceCents / 100
 	};
 };
-
