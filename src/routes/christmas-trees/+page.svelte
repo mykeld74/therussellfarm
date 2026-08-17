@@ -6,7 +6,8 @@
 		carriageInTheSnow,
 		snowCoveredTrees,
 		newCottageInTheSnow,
-		family
+		family,
+		checkIn
 	} from '$lib/assets';
 	import {
 		getTreeSeasonDates,
@@ -31,7 +32,7 @@
 		{
 			title: 'Arrive at the Barn',
 			text: "Check in at the farmhouse. We'll point out the best rows for your tree size.",
-			image: sugaringBarn,
+			image: checkIn,
 			imageAlt: 'Russell Farm barn in winter'
 		},
 		{
@@ -129,7 +130,9 @@
 			</div>
 			<div class="optionCard">
 				<h3>South Lot — No Wagon Ride</h3>
-				<p class="price">${data.treePrice.toFixed(0)} per tree <span class="priceNote">(up to 7 ft)</span></p>
+				<p class="price">
+					${data.treePrice.toFixed(0)} per tree <span class="priceNote">(up to 7 ft)</span>
+				</p>
 				<p>
 					Pre-cut trees at the barn (when available), or walk out and cut your own in the South Lot.
 					Same great trees — no reservation required. Perfect if you'd prefer to pick and cut on
@@ -139,8 +142,8 @@
 			</div>
 		</div>
 		<p class="treePricingNote">
-			Trees 7 feet and under are ${treeBasePrice.toFixed(0)}. For trees taller than 7 feet, add
-			${treeOveragePerFoot} per additional foot. For example, a 12-foot tree is ${treeBasePrice.toFixed(0)}
+			Trees 7 feet and under are ${treeBasePrice.toFixed(0)}. For trees taller than 7 feet, add ${treeOveragePerFoot}
+			per additional foot. For example, a 12-foot tree is ${treeBasePrice.toFixed(0)}
 			+ (${treeOveragePerFoot} × {exampleFeetOver} ft) = ${exampleTotal.toFixed(0)}.
 		</p>
 	</div>
@@ -258,7 +261,9 @@
 			<div class="visitCard">
 				<h3>Hours</h3>
 				<p><strong>Friday (Only Friday, {openerSlash}):</strong><br />10 AM – 4 PM</p>
-				<p><strong>Saturdays &amp; Sundays</strong><br />(through {closerShort}):<br />10 AM – 4 PM</p>
+				<p>
+					<strong>Saturdays &amp; Sundays</strong><br />(through {closerShort}):<br />10 AM – 4 PM
+				</p>
 				<p class="hoursNote">
 					Open the day after Thanksgiving, then Saturdays &amp; Sundays through {closerLong}.
 				</p>
