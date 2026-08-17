@@ -14,7 +14,7 @@ import russellFarmExperienceThumb from './russellFarmExperienceThumb.jpg';
 import snowCoveredTrees from './snowCoveredTrees.webp';
 import sugaringBarn from './sugaringBarn.webp';
 import russellFarmVideo from './videos/therussellfarm.mp4';
-import checkIn from './checkIn.webp';
+import checkIn from './checkin.webp';
 
 export {
 	blackAndWhiteHorses,
