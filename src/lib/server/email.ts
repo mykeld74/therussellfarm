@@ -9,8 +9,17 @@ function getResend(): Resend {
 
 type ResendSendPayload = Parameters<Resend['emails']['send']>[0];
 
+function replyToAddress(): string | undefined {
+	const replyTo = env.REPLY_TO_EMAIL?.trim();
+	return replyTo || undefined;
+}
+
 async function sendEmail(payload: ResendSendPayload) {
-	const { data, error } = await getResend().emails.send(payload);
+	const replyTo = replyToAddress();
+	const { data, error } = await getResend().emails.send({
+		...payload,
+		...(replyTo ? { replyTo } : {})
+	});
 	if (error) {
 		throw new Error(error.message);
 	}
