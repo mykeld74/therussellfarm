@@ -1,11 +1,20 @@
-import type { PageServerLoad } from './$types';
+import type { PageServerLoad, Actions } from './$types';
 import { db } from '$lib/server/db';
-import { availabilitySlots, bookings } from '$lib/server/db/schema';
+import { availabilitySlots, bookings, pricing } from '$lib/server/db/schema';
 import { gte, count, eq, ne, and } from 'drizzle-orm';
+import { fail } from '@sveltejs/kit';
 import { bookedSeatsSql } from '$lib/server/booking-seats';
+import { requireAdmin } from '$lib/server/admin-guard';
+import { getAllowReservationsFrom } from '$lib/server/reservations';
 
-export const load: PageServerLoad = async () => {
+const SINGLE_PRICING_ID = 1;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+export const load: PageServerLoad = async ({ locals }) => {
+	requireAdmin(locals);
+
 	const today = new Date().toISOString().split('T')[0];
+	const allowReservationsFrom = (await getAllowReservationsFrom()) ?? '';
 
 	const slots = await db
 		.select({
@@ -29,6 +38,7 @@ export const load: PageServerLoad = async () => {
 		.orderBy(availabilitySlots.date, availabilitySlots.startTime);
 
 	return {
+		allowReservationsFrom,
 		slots: slots.map((s) => {
 			const bookedCount = Number(s.bookedCount);
 			const bookedSeats = Number(s.bookedSeats);
@@ -40,4 +50,35 @@ export const load: PageServerLoad = async () => {
 			};
 		})
 	};
+};
+
+export const actions: Actions = {
+	saveReservationsOpen: async ({ request, locals }) => {
+		requireAdmin(locals);
+
+		const form = await request.formData();
+		const allowReservationsFrom = form.get('allowReservationsFrom')?.toString().trim() ?? '';
+
+		if (allowReservationsFrom && !DATE_RE.test(allowReservationsFrom)) {
+			return fail(400, {
+				reservationsError: 'Allow reservations date must be a valid date.',
+				allowReservationsFrom
+			});
+		}
+
+		const value = allowReservationsFrom || null;
+
+		await db
+			.insert(pricing)
+			.values({ id: SINGLE_PRICING_ID, allowReservationsFrom: value })
+			.onConflictDoUpdate({
+				target: pricing.id,
+				set: { allowReservationsFrom: value, updatedAt: new Date() }
+			});
+
+		return {
+			reservationsSuccess: true,
+			allowReservationsFrom: allowReservationsFrom
+		};
+	}
 };

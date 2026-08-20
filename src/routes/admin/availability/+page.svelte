@@ -1,9 +1,10 @@
 <script lang="ts">
-	import type { PageData } from './$types';
+	import type { PageData, ActionData } from './$types';
 	import { invalidateAll } from '$app/navigation';
+	import { enhance } from '$app/forms';
 	import { formatDate, formatTime } from '$lib/utils';
 
-	let { data }: { data: PageData } = $props();
+	let { data, form }: { data: PageData; form: ActionData } = $props();
 
 	function addMinutesToTime(time: string, minutes: number): string {
 		const [h, m] = time.split(':').map((part) => Number(part));
@@ -31,6 +32,13 @@
 	let seedMessage = $state('');
 	let seedError = $state('');
 	let seeding = $state(false);
+	let savingReservations = $state(false);
+
+	let allowReservationsFrom = $derived(
+		form && 'allowReservationsFrom' in form && typeof form.allowReservationsFrom === 'string'
+			? form.allowReservationsFrom
+			: data.allowReservationsFrom
+	);
 
 	$effect(() => {
 		if (!endTimeTouched) {
@@ -179,96 +187,149 @@
 	<h1 class="adminH1">Availability</h1>
 
 	<div class="availLayout">
-		<!-- Create slot form -->
-		<div class="createPanel">
-			<h2>Add New Slot</h2>
+		<div class="sidebarCol">
+			<!-- Create slot form -->
+			<div class="sidePanel">
+				<h2>Add New Slot</h2>
 
-			{#if formError}
-				<div class="alert alertError">{formError}</div>
-			{/if}
-			{#if formSuccess}
-				<div class="alert alertSuccess">{formSuccess}</div>
-			{/if}
+				{#if formError}
+					<div class="alert alertError">{formError}</div>
+				{/if}
+				{#if formSuccess}
+					<div class="alert alertSuccess">{formSuccess}</div>
+				{/if}
 
-			<form onsubmit={createSlot} class="slotForm">
-				<div class="field">
-					<label for="slotDate">Date</label>
-					<input id="slotDate" type="date" bind:value={newDate} min={minDate} required />
-				</div>
-
-				<div class="timeRow">
+				<form onsubmit={createSlot} class="slotForm">
 					<div class="field">
-						<label for="start-time">Start Time</label>
-						<input
-							id="start-time"
-							type="time"
-							bind:value={newStartTime}
-							oninput={() => (endTimeTouched = false)}
-							required
-						/>
+						<label for="slotDate">Date</label>
+						<input id="slotDate" type="date" bind:value={newDate} min={minDate} required />
 					</div>
+
+					<div class="timeRow">
+						<div class="field">
+							<label for="start-time">Start Time</label>
+							<input
+								id="start-time"
+								type="time"
+								bind:value={newStartTime}
+								oninput={() => (endTimeTouched = false)}
+								required
+							/>
+						</div>
+						<div class="field">
+							<label for="end-time">End Time</label>
+							<input
+								id="end-time"
+								type="time"
+								bind:value={newEndTime}
+								oninput={() => (endTimeTouched = true)}
+								required
+							/>
+						</div>
+					</div>
+
 					<div class="field">
-						<label for="end-time">End Time</label>
-						<input
-							id="end-time"
-							type="time"
-							bind:value={newEndTime}
-							oninput={() => (endTimeTouched = true)}
-							required
-						/>
+						<label for="capacity">Wagon seats (capacity)</label>
+						<div class="numberInput">
+							<button type="button" onclick={() => (newCapacity = Math.max(1, newCapacity - 1))}
+								>−</button
+							>
+							<input
+								id="capacity"
+								type="number"
+								bind:value={newCapacity}
+								min="1"
+								max="50"
+								readonly
+							/>
+							<button type="button" onclick={() => (newCapacity = Math.min(50, newCapacity + 1))}
+								>+</button
+							>
+						</div>
+						<span class="fieldHint">Default 16 — 1 adult = 2 seats, 1 child = 1 seat.</span>
 					</div>
+
+					<button
+						type="button"
+						class="btn btnSecondary"
+						style="width:100%; margin-bottom: 0.5rem;"
+						disabled={submitting || fullDayLoading || !newDate}
+						onclick={createFullDay}
+					>
+						{fullDayLoading ? 'Adding full day…' : 'Add full day (10:00–4:00 every 15 min)'}
+					</button>
+
+					<button type="submit" class="btn btnPrimary" style="width:100%;" disabled={submitting}>
+						{submitting ? 'Creating…' : '+ Add Slot'}
+					</button>
+				</form>
+
+				<div class="seedSection">
+					<h3>Holiday slots (Sat & Sun)</h3>
+					<p class="seedDesc">
+						Add slots for Fri–Sun: Friday after Thanksgiving through the last Sunday before
+						Christmas, every 15&nbsp;min from 10:00&nbsp;am–4:00&nbsp;pm.
+					</p>
+					{#if seedError}
+						<div class="alert alertError">{seedError}</div>
+					{/if}
+					{#if seedMessage}
+						<div class="alert alertSuccess">{seedMessage}</div>
+					{/if}
+					<button
+						type="button"
+						class="btn btnSecondary"
+						style="width:100%;"
+						disabled={seeding}
+						onclick={seedHolidaySlots}
+					>
+						{seeding ? 'Seeding…' : 'Seed holiday slots'}
+					</button>
 				</div>
+			</div>
 
-				<div class="field">
-					<label for="capacity">Wagon seats (capacity)</label>
-					<div class="numberInput">
-						<button type="button" onclick={() => (newCapacity = Math.max(1, newCapacity - 1))}
-							>−</button
-						>
-						<input id="capacity" type="number" bind:value={newCapacity} min="1" max="50" readonly />
-						<button type="button" onclick={() => (newCapacity = Math.min(50, newCapacity + 1))}
-							>+</button
-						>
-					</div>
-					<span class="fieldHint">Default 16 — 1 adult = 2 seats, 1 child = 1 seat.</span>
-				</div>
-
-				<button
-					type="button"
-					class="btn btnSecondary"
-					style="width:100%; margin-bottom: 0.5rem;"
-					disabled={submitting || fullDayLoading || !newDate}
-					onclick={createFullDay}
-				>
-					{fullDayLoading ? 'Adding full day…' : 'Add full day (10:00–4:00 every 15 min)'}
-				</button>
-
-				<button type="submit" class="btn btnPrimary" style="width:100%;" disabled={submitting}>
-					{submitting ? 'Creating…' : '+ Add Slot'}
-				</button>
-			</form>
-
-			<div class="seedSection">
-				<h3>Holiday slots (Sat & Sun)</h3>
-				<p class="seedDesc">
-					Add slots for Fri–Sun: Friday after Thanksgiving through the last Sunday before Christmas,
-					every 15&nbsp;min from 10:00&nbsp;am–4:00&nbsp;pm.
+			<div class="sidePanel">
+				<h2>Allow Reservations</h2>
+				<p class="reservationsDesc">
+					Before this date, visitors see when booking opens instead of the wizard. Leave blank to
+					allow booking immediately.
 				</p>
-				{#if seedError}
-					<div class="alert alertError">{seedError}</div>
+				{#if form?.reservationsError}
+					<div class="alert alertError">{form.reservationsError}</div>
 				{/if}
-				{#if seedMessage}
-					<div class="alert alertSuccess">{seedMessage}</div>
+				{#if form?.reservationsSuccess}
+					<div class="alert alertSuccess">Reservation open date saved.</div>
 				{/if}
-				<button
-					type="button"
-					class="btn btnSecondary"
-					style="width:100%;"
-					disabled={seeding}
-					onclick={seedHolidaySlots}
+				<form
+					method="POST"
+					action="?/saveReservationsOpen"
+					class="reservationsForm"
+					use:enhance={() => {
+						savingReservations = true;
+						return async ({ update }) => {
+							await update({ reset: false });
+							savingReservations = false;
+						};
+					}}
 				>
-					{seeding ? 'Seeding…' : 'Seed holiday slots'}
-				</button>
+					<div class="field">
+						<label for="allowReservationsFrom">Open booking on</label>
+						<input
+							id="allowReservationsFrom"
+							name="allowReservationsFrom"
+							type="date"
+							value={allowReservationsFrom}
+						/>
+					</div>
+					<button
+						type="submit"
+						class="btn btnPrimary"
+						style="width:100%;"
+						disabled={savingReservations}
+					>
+						{savingReservations ? 'Saving…' : 'Save open date'}
+					</button>
+				</form>
 			</div>
 		</div>
 
@@ -361,17 +422,22 @@
 		align-items: start;
 	}
 
-	/* Create panel */
-	.createPanel {
-		background: var(--color-white);
-		border: 1px solid var(--color-border);
-		border-radius: var(--radius-lg);
-		padding: 1.5rem;
+	.sidebarCol {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
 		position: sticky;
 		top: calc(var(--header-height) + 2rem);
 	}
 
-	.createPanel h2,
+	.sidePanel {
+		background: var(--color-white);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-lg);
+		padding: 1.5rem;
+	}
+
+	.sidePanel h2,
 	.slotsHeader h2 {
 		font-size: 1rem;
 		color: var(--color-text);
@@ -398,11 +464,44 @@
 		margin-bottom: 0.5rem;
 	}
 
+	.reservationsDesc,
 	.seedDesc {
 		font-size: 0.85rem;
 		color: var(--color-text-muted);
 		margin-bottom: 0.75rem;
 		line-height: 1.4;
+	}
+
+	.sidePanel > .reservationsDesc {
+		margin-top: -0.75rem;
+	}
+
+	.reservationsForm {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.reservationsForm .field {
+		margin: 0;
+	}
+
+	.reservationsForm .field label {
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: var(--color-text-muted);
+		margin-bottom: 0.3rem;
+		display: block;
+	}
+
+	.reservationsForm input[type='date'] {
+		width: 100%;
+		padding: 0.55rem 0.75rem;
+		border: 1.5px solid var(--color-border);
+		border-radius: var(--radius);
+		font-family: var(--font-sans);
+		font-size: 0.9rem;
+		background: var(--color-white);
 	}
 
 	.slotForm .field {
@@ -527,7 +626,7 @@
 			grid-template-columns: 1fr;
 		}
 
-		.createPanel {
+		.sidebarCol {
 			position: static;
 		}
 	}

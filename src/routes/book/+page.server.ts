@@ -4,8 +4,23 @@ import { availabilitySlots, bookings } from '$lib/server/db/schema';
 import { user as userTable } from '$lib/server/db/auth.schema';
 import { and, gte, eq, ne, count } from 'drizzle-orm';
 import { bookedSeatsSql } from '$lib/server/booking-seats';
+import { getReservationsStatus } from '$lib/server/reservations';
+import { formatReservationOpenDate } from '$lib/reservations';
 
 export const load: PageServerLoad = async ({ locals }) => {
+	const { allowReservationsFrom, reservationsOpen } = await getReservationsStatus();
+
+	if (!reservationsOpen && allowReservationsFrom) {
+		return {
+			user: locals.user ?? null,
+			firstAvailableDate: null,
+			phone: null,
+			reservationsOpen: false,
+			allowReservationsFrom,
+			opensOnLabel: formatReservationOpenDate(allowReservationsFrom)
+		};
+	}
+
 	const todayStr = new Date().toISOString().split('T')[0];
 
 	// Look ahead up to one year for the first slot with remaining seat capacity
@@ -49,6 +64,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 	return {
 		user: locals.user ?? null,
 		firstAvailableDate: firstAvailable?.date ?? null,
-		phone
+		phone,
+		reservationsOpen: true,
+		allowReservationsFrom,
+		opensOnLabel: null as string | null
 	};
 };

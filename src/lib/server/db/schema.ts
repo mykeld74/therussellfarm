@@ -49,6 +49,8 @@ export const pricing = pgTable('pricing', {
 	mapleSyrupQuartCents: integer('maple_syrup_quart_cents').notNull().default(2000),
 	mapleSyrupHalfGallonCents: integer('maple_syrup_half_gallon_cents').notNull().default(3500),
 	mapleSyrupGallonCents: integer('maple_syrup_gallon_cents').notNull().default(6000),
+	/** Calendar date (YYYY-MM-DD) when online reservations open. Null = always open. */
+	allowReservationsFrom: date('allow_reservations_from'),
 	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
 });
 

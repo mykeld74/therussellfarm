@@ -112,61 +112,76 @@
 			<p>Christmas Tree Wagon Ride & Cabin Experience · Reserve your family's spot</p>
 		</div>
 
-		<!-- Progress indicator -->
-		<div class="progressBar" role="progressbar" aria-label="Booking progress">
-			{#each steps as s, i (s)}
-				<div class="progressStep" class:completed={i < currentStepIndex} class:current={s === step}>
-					<div class="stepDot">
-						{#if i < currentStepIndex}
-							✓
-						{:else}
-							{i + 1}
-						{/if}
+		{#if !data.reservationsOpen}
+			<div class="reservationsClosed">
+				<p class="closedEyebrow">Reservations not open yet</p>
+				<p class="closedMessage">
+					Online booking opens on <strong>{data.opensOnLabel}</strong>. Please check back then to
+					reserve your wagon ride.
+				</p>
+				<a href="/christmas-trees" class="btn btnPrimary">Learn about the experience</a>
+			</div>
+		{:else}
+			<!-- Progress indicator -->
+			<div class="progressBar" role="progressbar" aria-label="Booking progress">
+				{#each steps as s, i (s)}
+					<div
+						class="progressStep"
+						class:completed={i < currentStepIndex}
+						class:current={s === step}
+					>
+						<div class="stepDot">
+							{#if i < currentStepIndex}
+								✓
+							{:else}
+								{i + 1}
+							{/if}
+						</div>
+						<span class="stepLabel">{stepLabels[s]}</span>
 					</div>
-					<span class="stepLabel">{stepLabels[s]}</span>
-				</div>
-				{#if i < steps.length - 1}
-					<div class="progressConnector" class:filled={i < currentStepIndex}></div>
-				{/if}
-			{/each}
-		</div>
+					{#if i < steps.length - 1}
+						<div class="progressConnector" class:filled={i < currentStepIndex}></div>
+					{/if}
+				{/each}
+			</div>
 
-		<!-- Step content -->
-		<div class="stepContent">
-			{#if step === 'party'}
-				<PartyStep initialData={formData} onSubmit={handlePartySubmit} />
-			{:else if step === 'date'}
-				<DateStep
-					onDateSelected={handleDateSelected}
-					onBack={() => (step = 'party')}
-					initialDate={data.firstAvailableDate}
-					partySizeAdults={formData.partySizeAdults}
-					partySizeKids={formData.partySizeKids}
-				/>
-			{:else if step === 'time'}
-				<TimeStep
-					date={formData.selectedDate}
-					partySizeAdults={formData.partySizeAdults}
-					partySizeKids={formData.partySizeKids}
-					onSlotSelected={handleSlotSelected}
-					onBack={() => (step = 'date')}
-				/>
-			{:else if step === 'details'}
-				<DetailsStep
-					initialData={formData}
-					onSubmit={handleDetailsSubmit}
-					onBack={() => (step = 'time')}
-				/>
-			{:else if step === 'review'}
-				<ReviewStep
-					data={formData}
-					{isSubmitting}
-					error={submitError}
-					onConfirm={handleConfirm}
-					onBack={() => (step = 'details')}
-				/>
-			{/if}
-		</div>
+			<!-- Step content -->
+			<div class="stepContent">
+				{#if step === 'party'}
+					<PartyStep initialData={formData} onSubmit={handlePartySubmit} />
+				{:else if step === 'date'}
+					<DateStep
+						onDateSelected={handleDateSelected}
+						onBack={() => (step = 'party')}
+						initialDate={data.firstAvailableDate}
+						partySizeAdults={formData.partySizeAdults}
+						partySizeKids={formData.partySizeKids}
+					/>
+				{:else if step === 'time'}
+					<TimeStep
+						date={formData.selectedDate}
+						partySizeAdults={formData.partySizeAdults}
+						partySizeKids={formData.partySizeKids}
+						onSlotSelected={handleSlotSelected}
+						onBack={() => (step = 'date')}
+					/>
+				{:else if step === 'details'}
+					<DetailsStep
+						initialData={formData}
+						onSubmit={handleDetailsSubmit}
+						onBack={() => (step = 'time')}
+					/>
+				{:else if step === 'review'}
+					<ReviewStep
+						data={formData}
+						{isSubmitting}
+						error={submitError}
+						onConfirm={handleConfirm}
+						onBack={() => (step = 'details')}
+					/>
+				{/if}
+			</div>
+		{/if}
 	</div>
 </div>
 
@@ -189,6 +204,31 @@
 	.pageHeader p {
 		color: var(--color-text-muted);
 		font-size: 1rem;
+	}
+
+	.reservationsClosed {
+		max-width: 32rem;
+		margin: 0 auto;
+		text-align: center;
+		padding: 2rem 1.5rem;
+		background: var(--color-cream-dk);
+		border-radius: var(--radius);
+	}
+
+	.closedEyebrow {
+		margin: 0 0 0.75rem;
+		font-size: 0.8rem;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--color-forest);
+	}
+
+	.closedMessage {
+		margin: 0 0 1.5rem;
+		font-size: 1.05rem;
+		line-height: 1.55;
+		color: var(--color-text);
 	}
 
 	/* Progress bar */

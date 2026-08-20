@@ -6,10 +6,22 @@ import { eq, count, and, gte, sql } from 'drizzle-orm';
 import { generateBookingRef, formatDate, formatTime } from '$lib/server/booking-utils';
 import { sendBookingConfirmation, sendFarmBookingScheduled } from '$lib/server/email';
 import { partyFitsWagon, seatsForParty } from '$lib/booking-capacity';
+import { getReservationsStatus } from '$lib/server/reservations';
+import { formatReservationOpenDate } from '$lib/reservations';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const POST: RequestHandler = async ({ request, locals }) => {
+	const { allowReservationsFrom, reservationsOpen } = await getReservationsStatus();
+	if (!reservationsOpen && allowReservationsFrom) {
+		return json(
+			{
+				error: `Online reservations open on ${formatReservationOpenDate(allowReservationsFrom)}.`
+			},
+			{ status: 403 }
+		);
+	}
+
 	const body = await request.json();
 	const { slotId, name, email, phone, partySizeAdults, partySizeKids } = body;
 
