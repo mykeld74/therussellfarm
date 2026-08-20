@@ -89,6 +89,24 @@
 		roleFilter = '';
 	}
 
+	async function readApiError(res: Response, fallback: string): Promise<string> {
+		if (res.redirected || res.url.includes('/auth/login')) {
+			return 'Your session expired. Please sign in again.';
+		}
+		const contentType = res.headers.get('content-type') ?? '';
+		if (contentType.includes('application/json')) {
+			const body = await res.json().catch(() => ({} as { error?: string; message?: string }));
+			return body.error ?? body.message ?? fallback;
+		}
+		if (res.status === 401 || res.status === 403) {
+			return 'You do not have permission to do that.';
+		}
+		if (res.status === 405) {
+			return 'Your session expired. Please sign in again.';
+		}
+		return fallback;
+	}
+
 	async function changeRole(userId: string, role: string) {
 		updatingId = userId;
 		updateError = '';
@@ -96,11 +114,11 @@
 			const res = await fetch(`/api/admin/users/${userId}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
+				credentials: 'same-origin',
 				body: JSON.stringify({ role })
 			});
 			if (!res.ok) {
-				const body = await res.json().catch(() => ({}));
-				throw new Error(body.error ?? 'Failed to update');
+				throw new Error(await readApiError(res, 'Failed to update role.'));
 			}
 			await invalidateAll();
 		} catch (e) {
@@ -122,10 +140,15 @@
 		deletingId = user.id;
 		updateError = '';
 		try {
-			const res = await fetch(`/api/admin/users/${user.id}`, { method: 'DELETE' });
+			// POST avoids DELETE+redirect quirks on Netlify (302 → login → 405)
+			const res = await fetch(`/api/admin/users/${user.id}`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				credentials: 'same-origin',
+				body: JSON.stringify({ action: 'delete' })
+			});
 			if (!res.ok) {
-				const body = await res.json().catch(() => ({}));
-				throw new Error(body.error ?? 'Failed to delete');
+				throw new Error(await readApiError(res, 'Failed to delete account.'));
 			}
 			await invalidateAll();
 		} catch (e) {

@@ -1,10 +1,20 @@
 import { redirect, error } from '@sveltejs/kit';
+import { getRequestEvent } from '$app/server';
 
 export type UserRole = 'user' | 'admin' | 'super_admin';
 
-/** Requires admin or super_admin role. Redirects to login if unauthenticated. */
+function isApiRequest(): boolean {
+	try {
+		return getRequestEvent().url.pathname.startsWith('/api/');
+	} catch {
+		return false;
+	}
+}
+
+/** Requires admin or super_admin role. Redirects to login if unauthenticated (pages only). */
 export function requireAdmin(locals: App.Locals): void {
 	if (!locals.user) {
+		if (isApiRequest()) error(401, 'Unauthorized');
 		redirect(302, '/auth/login?next=/admin');
 	}
 	if (locals.role !== 'admin' && locals.role !== 'super_admin') {
@@ -12,9 +22,10 @@ export function requireAdmin(locals: App.Locals): void {
 	}
 }
 
-/** Requires super_admin role. Redirects to login if unauthenticated. */
+/** Requires super_admin role. Redirects to login if unauthenticated (pages only). */
 export function requireSuperAdmin(locals: App.Locals): void {
 	if (!locals.user) {
+		if (isApiRequest()) error(401, 'Unauthorized');
 		redirect(302, '/auth/login?next=/admin');
 	}
 	if (locals.role !== 'super_admin') {
