@@ -4,7 +4,7 @@ import { db } from '$lib/server/db';
 import { bookings, availabilitySlots } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { requireAdmin } from '$lib/server/admin-guard';
-import { sendBookingConfirmation, sendBookingCancelled } from '$lib/server/email';
+import { sendBookingConfirmation, sendBookingCancelled, sendFarmBookingScheduled, sendFarmBookingCancelled } from '$lib/server/email';
 import { formatDate, formatTime } from '$lib/server/booking-utils';
 
 export const PATCH: RequestHandler = async ({ params, request, locals }) => {
@@ -42,9 +42,10 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 				.limit(1);
 
 			if (slot) {
-				const emailData = {
-					to: updated.email,
+				const notice = {
 					name: updated.name,
+					email: updated.email,
+					phone: updated.phone,
 					bookingRef: updated.bookingRef,
 					date: formatDate(slot.date),
 					startTime: formatTime(slot.startTime),
@@ -52,10 +53,32 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 					adults: updated.partySizeAdults,
 					kids: updated.partySizeKids
 				};
+				const emailData = {
+					to: updated.email,
+					...notice
+				};
 				if (status === 'confirmed') {
-					await sendBookingConfirmation(emailData);
+					try {
+						await sendBookingConfirmation(emailData);
+					} catch (emailErr) {
+						console.error('Status update confirmation email failed:', emailErr);
+					}
+					try {
+						await sendFarmBookingScheduled(notice);
+					} catch (emailErr) {
+						console.error('Farm booking notice email failed:', emailErr);
+					}
 				} else {
-					await sendBookingCancelled(emailData);
+					try {
+						await sendBookingCancelled(emailData);
+					} catch (emailErr) {
+						console.error('Status update cancellation email failed:', emailErr);
+					}
+					try {
+						await sendFarmBookingCancelled(notice);
+					} catch (emailErr) {
+						console.error('Farm cancellation notice failed:', emailErr);
+					}
 				}
 			}
 		} catch (emailErr) {

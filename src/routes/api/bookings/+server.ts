@@ -4,7 +4,7 @@ import { db } from '$lib/server/db';
 import { bookings, availabilitySlots } from '$lib/server/db/schema';
 import { eq, count, and, gte, sql } from 'drizzle-orm';
 import { generateBookingRef, formatDate, formatTime } from '$lib/server/booking-utils';
-import { sendBookingConfirmation } from '$lib/server/email';
+import { sendBookingConfirmation, sendFarmBookingScheduled } from '$lib/server/email';
 import { partyFitsWagon, seatsForParty } from '$lib/booking-capacity';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -110,19 +110,31 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	const newRef = (inserted.rows[0] as { booking_ref: string }).booking_ref;
 
+	const emailPayload = {
+		name: trimmedName,
+		bookingRef: newRef,
+		date: formatDate(slot.date),
+		startTime: formatTime(slot.startTime),
+		endTime: formatTime(slot.endTime),
+		adults,
+		kids,
+		phone: trimmedPhone,
+		email: trimmedEmail
+	};
+
 	try {
 		await sendBookingConfirmation({
 			to: trimmedEmail,
-			name: trimmedName,
-			bookingRef: newRef,
-			date: formatDate(slot.date),
-			startTime: formatTime(slot.startTime),
-			endTime: formatTime(slot.endTime),
-			adults,
-			kids
+			...emailPayload
 		});
 	} catch (emailErr) {
 		console.error('Booking confirmation email failed:', emailErr);
+	}
+
+	try {
+		await sendFarmBookingScheduled(emailPayload);
+	} catch (emailErr) {
+		console.error('Farm booking notice email failed:', emailErr);
 	}
 
 	return json({ bookingRef: newRef }, { status: 201 });

@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { bookings, availabilitySlots } from '$lib/server/db/schema';
 import { eq, and, ne, sql } from 'drizzle-orm';
-import { sendBookingCancelled } from '$lib/server/email';
+import { sendBookingCancelled, sendFarmBookingCancelled } from '$lib/server/email';
 import { formatDate, formatTime } from '$lib/server/booking-utils';
 import { partyFitsWagon, seatsForParty } from '$lib/booking-capacity';
 import { bookedSeatsSql } from '$lib/server/booking-seats';
@@ -76,18 +76,32 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 			.where(eq(bookings.bookingRef, params.ref));
 
 		try {
-			await sendBookingCancelled({
-				to: booking.email,
+			const notice = {
 				name: booking.name,
+				email: booking.email,
+				phone: booking.phone,
 				bookingRef: params.ref,
 				date: formatDate(booking.date),
 				startTime: formatTime(booking.startTime),
 				endTime: formatTime(booking.endTime),
 				adults: booking.partySizeAdults,
 				kids: booking.partySizeKids
-			});
+			};
+			try {
+				await sendBookingCancelled({
+					to: booking.email,
+					...notice
+				});
+			} catch (emailErr) {
+				console.error('Cancellation email failed:', emailErr);
+			}
+			try {
+				await sendFarmBookingCancelled(notice);
+			} catch (emailErr) {
+				console.error('Farm cancellation notice failed:', emailErr);
+			}
 		} catch (emailErr) {
-			console.error('Cancellation email failed:', emailErr);
+			console.error('Cancellation notification failed:', emailErr);
 		}
 
 		return json({ ok: true });

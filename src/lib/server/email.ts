@@ -14,8 +14,17 @@ function replyToAddress(): string | undefined {
 	return replyTo || undefined;
 }
 
+/** Inbox that receives farm alerts for new/cancelled bookings. */
+function farmNotifyAddress(): string | undefined {
+	return (
+		env.BOOKING_NOTIFY_EMAIL?.trim() ||
+		env.REPLY_TO_EMAIL?.trim() ||
+		undefined
+	);
+}
+
 async function sendEmail(payload: ResendSendPayload) {
-	const replyTo = replyToAddress();
+	const replyTo = payload.replyTo ?? replyToAddress();
 	const { data, error } = await getResend().emails.send({
 		...payload,
 		...(replyTo ? { replyTo } : {})
@@ -44,6 +53,8 @@ export interface BookingConfirmationData {
 	endTime: string;
 	adults: number;
 	kids: number;
+	phone?: string;
+	email?: string;
 }
 
 export async function sendBookingConfirmation(data: BookingConfirmationData) {
@@ -76,6 +87,48 @@ export async function sendBookingCancelled(data: BookingConfirmationData) {
 		to: data.to,
 		subject: `Booking Cancelled – The Russell Farm (${data.bookingRef})`,
 		html: buildCancelledHtml(data)
+	});
+}
+
+export interface FarmBookingNoticeData {
+	name: string;
+	email: string;
+	phone?: string;
+	bookingRef: string;
+	date: string;
+	startTime: string;
+	endTime: string;
+	adults: number;
+	kids: number;
+}
+
+export async function sendFarmBookingScheduled(data: FarmBookingNoticeData) {
+	const to = farmNotifyAddress();
+	if (!to) {
+		console.warn('BOOKING_NOTIFY_EMAIL / REPLY_TO_EMAIL not set; skipping farm booking notice.');
+		return;
+	}
+	return sendEmail({
+		from: env.FROM_EMAIL,
+		to,
+		replyTo: data.email,
+		subject: `New booking scheduled – ${data.bookingRef}`,
+		html: buildFarmNoticeHtml(data, 'scheduled')
+	});
+}
+
+export async function sendFarmBookingCancelled(data: FarmBookingNoticeData) {
+	const to = farmNotifyAddress();
+	if (!to) {
+		console.warn('BOOKING_NOTIFY_EMAIL / REPLY_TO_EMAIL not set; skipping farm cancel notice.');
+		return;
+	}
+	return sendEmail({
+		from: env.FROM_EMAIL,
+		to,
+		replyTo: data.email,
+		subject: `Booking cancelled – ${data.bookingRef}`,
+		html: buildFarmNoticeHtml(data, 'cancelled')
 	});
 }
 
@@ -366,7 +419,9 @@ function buildConfirmationHtml(data: BookingConfirmationData): string {
               We can't wait to welcome your family to The Russell Farm.
               Bring your boots and your holiday spirit — it's going to be a wonderful time!
             </p>
-
+            <p style="font-family:sans-serif;line-height:1.6;font-weight:bold;">
+              Please plan to arrive 15 minutes early to ensure that appointments run on time as best as we can!
+            </p>
             <!-- Booking details box -->
             <table width="100%" cellpadding="0" cellspacing="0"
               style="background:#f9f5ee;border-radius:6px;border-left:4px solid #2d5a27;margin:24px 0;">
@@ -429,6 +484,106 @@ function buildConfirmationHtml(data: BookingConfirmationData): string {
             border-top:1px solid #d4c9b0;">
             <p style="margin:0;">
               See you soon! — The Russell Family
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+function buildFarmNoticeHtml(
+	data: FarmBookingNoticeData,
+	kind: 'scheduled' | 'cancelled'
+): string {
+	const name = escapeHtml(data.name);
+	const email = escapeHtml(data.email);
+	const phone = escapeHtml(data.phone ?? '—');
+	const ref = escapeHtml(data.bookingRef);
+	const date = escapeHtml(data.date);
+	const start = escapeHtml(data.startTime);
+	const end = escapeHtml(data.endTime);
+	const isCancel = kind === 'cancelled';
+	const headerBg = isCancel ? '#8b1a1a' : '#2d5a27';
+	const accent = isCancel ? '#8b1a1a' : '#2d5a27';
+	const title = isCancel ? 'Booking cancelled' : 'New booking scheduled';
+	const intro = isCancel
+		? 'A wagon appointment has been cancelled.'
+		: 'A new wagon appointment has been booked.';
+	const partyLabel = `${data.adults} adult${data.adults === 1 ? '' : 's'}${
+		data.kids > 0 ? `, ${data.kids} child${data.kids === 1 ? '' : 'ren'}` : ''
+	}`;
+	const adminUrl = escapeHtml(
+		`${env.ORIGIN || 'http://localhost:5173'}/admin/bookings`
+	);
+
+	return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f9f5ee;font-family:Georgia,serif;color:#2c2c2c;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px;">
+    <tr><td>
+      <table width="600" align="center" cellpadding="0" cellspacing="0"
+        style="background:#fff;border-radius:8px;overflow:hidden;max-width:100%;">
+        <tr>
+          <td style="background:${headerBg};padding:28px 40px;text-align:center;">
+            <h1 style="margin:0;color:#f9f5ee;font-size:24px;font-family:Georgia,serif;">
+              The Russell Farm
+            </h1>
+            <p style="margin:6px 0 0;color:#f9f5ee;opacity:0.85;font-size:14px;font-family:sans-serif;">
+              Farm notification
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px 40px;">
+            <h2 style="color:${accent};margin-top:0;font-family:Georgia,serif;">
+              ${title}
+            </h2>
+            <p style="font-family:sans-serif;line-height:1.6;">${intro}</p>
+            <table width="100%" cellpadding="0" cellspacing="0"
+              style="background:#f9f5ee;border-radius:6px;border-left:4px solid ${accent};margin:20px 0;">
+              <tr>
+                <td style="padding:20px 24px;">
+                  <table width="100%" cellpadding="6" cellspacing="0"
+                    style="font-family:sans-serif;font-size:15px;">
+                    <tr>
+                      <td style="color:#6b6355;width:40%;">Reference</td>
+                      <td style="font-weight:bold;color:${accent};">${ref}</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#6b6355;">Guest</td>
+                      <td style="font-weight:600;">${name}</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#6b6355;">Email</td>
+                      <td><a href="mailto:${email}">${email}</a></td>
+                    </tr>
+                    <tr>
+                      <td style="color:#6b6355;">Phone</td>
+                      <td>${phone}</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#6b6355;">Date</td>
+                      <td style="font-weight:600;">${date}</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#6b6355;">Time</td>
+                      <td style="font-weight:600;">${start} – ${end}</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#6b6355;">Party</td>
+                      <td>${partyLabel}</td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+            <p style="font-family:sans-serif;font-size:14px;color:#6b6355;">
+              Reply to this email to contact the guest, or
+              <a href="${adminUrl}" style="color:${accent};">open admin bookings</a>.
             </p>
           </td>
         </tr>
