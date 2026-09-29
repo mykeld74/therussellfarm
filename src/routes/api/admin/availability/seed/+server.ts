@@ -3,34 +3,32 @@ import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { availabilitySlots } from '$lib/server/db/schema';
 import { requireAdmin } from '$lib/server/admin-guard';
-import { and, eq, gte, lte } from 'drizzle-orm';
+import { and, gte, lte } from 'drizzle-orm';
 import {
 	thanksgivingThursday,
 	lastSundayBeforeChristmas,
 	treeSeasonYear
 } from '$lib/holiday-dates';
+import { WAGON_CONFIG, WAGON_TYPES, type WagonType } from '$lib/booking-capacity';
+import { getWagonSlotTimes } from '$lib/server/wagon-slots';
 
-/** Friday after Thanksgiving, plus all Saturdays and Sundays from that weekend through the last Sunday before Christmas */
+/** Friday after Thanksgiving, plus all Saturdays and Sundays through last Sunday before Christmas */
 function getHolidayWeekendDates(year: number): string[] {
 	const thanksgiving = thanksgivingThursday(year);
 
-	// Friday after Thanksgiving
 	const friAfterThanksgiving = new Date(thanksgiving);
 	friAfterThanksgiving.setDate(thanksgiving.getDate() + 1);
 
-	// Start weekend (Saturday) after Thanksgiving
 	const satAfterThanksgiving = new Date(thanksgiving);
 	satAfterThanksgiving.setDate(thanksgiving.getDate() + 2);
 
 	const endDate = lastSundayBeforeChristmas(year);
 	const dates: string[] = [];
 
-	// Include the Friday after Thanksgiving
 	if (friAfterThanksgiving <= endDate) {
 		dates.push(friAfterThanksgiving.toISOString().slice(0, 10));
 	}
 
-	// Then all Saturdays and Sundays until the last Sunday before Christmas
 	let d = new Date(satAfterThanksgiving);
 	while (d <= endDate) {
 		const day = d.getDay();
@@ -41,62 +39,56 @@ function getHolidayWeekendDates(year: number): string[] {
 	return dates;
 }
 
-/** 15-minute slot start times from 10:00 to 15:45 (last slot ends at 16:00) */
-function getSlotTimes(): { start: string; end: string }[] {
-	const slots: { start: string; end: string }[] = [];
-	for (let h = 10; h <= 15; h++) {
-		for (let m = 0; m < 60; m += 15) {
-			const start = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:00`;
-			const endM = m + 15;
-			const endH = endM === 60 ? h + 1 : h;
-			const endMNorm = endM % 60;
-			const end = `${endH.toString().padStart(2, '0')}:${endMNorm.toString().padStart(2, '0')}:00`;
-			slots.push({ start, end });
-		}
-	}
-	return slots;
-}
-
 export const POST: RequestHandler = async ({ locals }) => {
 	requireAdmin(locals);
 
 	const year = treeSeasonYear();
 	const dates = getHolidayWeekendDates(year);
-	const slotTimes = getSlotTimes();
 
 	const minDate = dates[0];
 	const maxDate = dates[dates.length - 1];
 
-	// Avoid duplicates: load existing slots in this range
 	const existing = await db
-		.select({ date: availabilitySlots.date, startTime: availabilitySlots.startTime })
+		.select({
+			date: availabilitySlots.date,
+			startTime: availabilitySlots.startTime,
+			wagonType: availabilitySlots.wagonType
+		})
 		.from(availabilitySlots)
-		.where(
-			and(
-				gte(availabilitySlots.date, minDate),
-				lte(availabilitySlots.date, maxDate)
-			)
-		);
-	const existingSet = new Set(existing.map((r) => `${r.date}_${r.startTime}`));
+		.where(and(gte(availabilitySlots.date, minDate), lte(availabilitySlots.date, maxDate)));
 
-	const toInsert: { date: string; startTime: string; endTime: string; maxCapacity: number; isActive: boolean }[] = [];
-	for (const date of dates) {
-		for (const { start, end } of slotTimes) {
-			if (existingSet.has(`${date}_${start}`)) continue;
-			toInsert.push({
-				date,
-				startTime: start,
-				endTime: end,
-				// Wagon seat capacity (1 adult = 2 seats, 1 kid = 1 seat)
-				maxCapacity: 16,
-				isActive: true
-			});
+	const existingSet = new Set(existing.map((r) => `${r.date}_${r.startTime}_${r.wagonType}`));
+
+	const toInsert: {
+		date: string;
+		startTime: string;
+		endTime: string;
+		wagonType: WagonType;
+		maxCapacity: number;
+		isActive: boolean;
+	}[] = [];
+
+	for (const wagonType of WAGON_TYPES) {
+		const slotTimes = getWagonSlotTimes(wagonType);
+		const maxCapacity = WAGON_CONFIG[wagonType].seatCapacity;
+		for (const date of dates) {
+			for (const { start, end } of slotTimes) {
+				if (existingSet.has(`${date}_${start}_${wagonType}`)) continue;
+				toInsert.push({
+					date,
+					startTime: start,
+					endTime: end,
+					wagonType,
+					maxCapacity,
+					isActive: true
+				});
+			}
 		}
 	}
 
 	if (toInsert.length === 0) {
 		return json({
-			message: 'No new slots to add; all holiday slots already exist.',
+			message: 'No new slots to add; all holiday slots already exist for both wagons.',
 			created: 0,
 			dates,
 			year
@@ -106,7 +98,7 @@ export const POST: RequestHandler = async ({ locals }) => {
 	await db.insert(availabilitySlots).values(toInsert);
 
 	return json({
-		message: `Created ${toInsert.length} holiday availability slots.`,
+		message: `Created ${toInsert.length} holiday availability slots (horse every 15 min, tractor every 30 min).`,
 		created: toInsert.length,
 		dates,
 		year

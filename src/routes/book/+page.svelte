@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import type { BookingStep, BookingFormData, SlotSummary } from '$lib/types';
+	import type { BookingStep, BookingFormData, SlotSummary, WagonType } from '$lib/types';
+	import RideStep from '$lib/components/booking/RideStep.svelte';
 	import PartyStep from '$lib/components/booking/PartyStep.svelte';
 	import DateStep from '$lib/components/booking/DateStep.svelte';
 	import TimeStep from '$lib/components/booking/TimeStep.svelte';
@@ -11,12 +12,12 @@
 
 	let { data }: { data: PageData } = $props();
 
-	// Wizard state — party size first so availability can filter by seats
-	let step: BookingStep = $state('party');
+	let step: BookingStep = $state('ride');
 
 	let formData: BookingFormData = $state(
 		untrack(() => ({
 			slotId: null,
+			wagonType: null,
 			selectedDate: '',
 			selectedSlot: null,
 			name: data.user?.name ?? '',
@@ -29,6 +30,19 @@
 
 	let isSubmitting = $state(false);
 	let submitError = $state('');
+
+	function handleRideSubmit(wagonType: WagonType) {
+		const rideChanged = formData.wagonType !== wagonType;
+		formData.wagonType = wagonType;
+		if (rideChanged) {
+			formData.partySizeAdults = 0;
+			formData.partySizeKids = 0;
+			formData.selectedDate = '';
+			formData.selectedSlot = null;
+			formData.slotId = null;
+		}
+		step = 'party';
+	}
 
 	function handlePartySubmit(party: Partial<BookingFormData>) {
 		Object.assign(formData, party);
@@ -86,8 +100,9 @@
 		}
 	}
 
-	const steps: BookingStep[] = ['party', 'date', 'time', 'details', 'review'];
+	const steps: BookingStep[] = ['ride', 'party', 'date', 'time', 'details', 'review'];
 	const stepLabels: Record<BookingStep, string> = {
+		ride: 'Your Ride',
 		party: 'Your Group',
 		date: 'Pick a Date',
 		time: 'Choose a Time',
@@ -122,7 +137,6 @@
 				<a href="/christmas-trees" class="btn btnPrimary">Learn about the experience</a>
 			</div>
 		{:else}
-			<!-- Progress indicator -->
 			<div class="progressBar" role="progressbar" aria-label="Booking progress">
 				{#each steps as s, i (s)}
 					<div
@@ -145,23 +159,31 @@
 				{/each}
 			</div>
 
-			<!-- Step content -->
 			<div class="stepContent">
-				{#if step === 'party'}
-					<PartyStep initialData={formData} onSubmit={handlePartySubmit} />
-				{:else if step === 'date'}
+				{#if step === 'ride'}
+					<RideStep initialType={formData.wagonType} onSubmit={handleRideSubmit} />
+				{:else if step === 'party' && formData.wagonType}
+					<PartyStep
+						wagonType={formData.wagonType}
+						initialData={formData}
+						onSubmit={handlePartySubmit}
+						onBack={() => (step = 'ride')}
+					/>
+				{:else if step === 'date' && formData.wagonType}
 					<DateStep
 						onDateSelected={handleDateSelected}
 						onBack={() => (step = 'party')}
 						initialDate={data.firstAvailableDate}
 						partySizeAdults={formData.partySizeAdults}
 						partySizeKids={formData.partySizeKids}
+						wagonType={formData.wagonType}
 					/>
-				{:else if step === 'time'}
+				{:else if step === 'time' && formData.wagonType}
 					<TimeStep
 						date={formData.selectedDate}
 						partySizeAdults={formData.partySizeAdults}
 						partySizeKids={formData.partySizeKids}
+						wagonType={formData.wagonType}
 						onSlotSelected={handleSlotSelected}
 						onBack={() => (step = 'date')}
 					/>
@@ -231,14 +253,13 @@
 		color: var(--color-text);
 	}
 
-	/* Progress bar */
 	.progressBar {
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		margin-bottom: 3rem;
 		gap: 0;
-		max-width: 640px;
+		max-width: 720px;
 		margin-left: auto;
 		margin-right: auto;
 	}
@@ -295,8 +316,8 @@
 		flex: 1;
 		height: 2px;
 		background: var(--color-border);
-		min-width: 1.5rem;
-		max-width: 4rem;
+		min-width: 1rem;
+		max-width: 3rem;
 		margin-bottom: 1.25rem;
 		transition: background 0.2s;
 	}
@@ -305,12 +326,12 @@
 		background: #6ee7b7;
 	}
 
-	@media (max-width: 600px) {
+	@media (max-width: 700px) {
 		.stepLabel {
 			display: none;
 		}
 		.progressConnector {
-			min-width: 1rem;
+			min-width: 0.75rem;
 		}
 	}
 </style>

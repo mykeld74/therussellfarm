@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { SlotSummary } from '$lib/types';
+	import type { SlotSummary, WagonType } from '$lib/types';
 	import { seatsForParty } from '$lib/booking-capacity';
 
 	let {
@@ -7,13 +7,15 @@
 		onBack,
 		initialDate = null,
 		partySizeAdults = 1,
-		partySizeKids = 0
+		partySizeKids = 0,
+		wagonType
 	}: {
 		onDateSelected: (date: string) => void;
 		onBack: () => void;
 		initialDate?: string | null;
 		partySizeAdults?: number;
 		partySizeKids?: number;
+		wagonType: WagonType;
 	} = $props();
 
 	let seatsNeeded = $derived(seatsForParty(partySizeAdults, partySizeKids));
@@ -34,12 +36,17 @@
 	let loading = $state(true);
 	let error = $state('');
 
-	// Fetch availability whenever the viewed month or party size changes
+	// Fetch availability whenever the viewed month, party size, or wagon type changes
 	$effect(() => {
-		fetchAvailability(viewYear, viewMonth, seatsNeeded);
+		fetchAvailability(viewYear, viewMonth, seatsNeeded, wagonType);
 	});
 
-	async function fetchAvailability(year: number, month: number, needed: number) {
+	async function fetchAvailability(
+		year: number,
+		month: number,
+		needed: number,
+		type: WagonType
+	) {
 		loading = true;
 		error = '';
 		try {
@@ -50,13 +57,15 @@
 			const nextYear = month === 11 ? year + 1 : year;
 			const to = `${nextYear}-${String(nextMonth + 1).padStart(2, '0')}-${lastDay}`;
 
-			const res = await fetch(`/api/availability?from=${from}&to=${to}`);
+			const res = await fetch(
+				`/api/availability?from=${from}&to=${to}&wagonType=${encodeURIComponent(type)}`
+			);
 			if (!res.ok) throw new Error('Failed to load availability');
 			const slots: SlotSummary[] = await res.json();
 
 			// Dates with at least one wagon that fits this party
 			availableDates = new Set(slots.filter((s) => s.remaining >= needed).map((s) => s.date));
-		} catch (e) {
+		} catch {
 			error = 'Could not load availability. Please try again.';
 		} finally {
 			loading = false;

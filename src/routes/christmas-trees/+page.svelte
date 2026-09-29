@@ -37,7 +37,7 @@
 		},
 		{
 			title: 'Wagon Ride Out',
-			text: 'Climb aboard the horse-drawn wagon for a scenic ride through the property out to the Christmas tree fields.',
+			text: 'Climb aboard a horse-drawn or tractor-drawn wagon for a scenic ride through the property out to the Christmas tree fields.',
 			image: carriageInTheSnow,
 			imageAlt: 'Horse-drawn wagon in the snow'
 		},
@@ -78,7 +78,7 @@
 		},
 		{
 			q: 'How many people per ride?',
-			a: 'Each wagon holds up to 8 adults or 16 children (one adult uses two child seats). Multiple families can share a wagon until it is full.'
+			a: 'Horse-drawn wagons hold up to 8 adults (16 seats) and leave every 15 minutes. Tractor-drawn wagons hold up to 12 adults (24 seats) and leave every 30 minutes. One adult uses two child seats. Multiple families can share a wagon until it is full.'
 		},
 		{
 			q: 'What if the weather is bad?',

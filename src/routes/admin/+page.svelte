@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { formatDate, formatTime } from '$lib/utils';
+	import { WAGON_CONFIG, type WagonType } from '$lib/booking-capacity';
 
 	function formatPhone(raw: string | null | undefined): string {
 		if (!raw) return '—';
@@ -65,7 +66,12 @@
 				{#each data.upcomingSlots as slot (slot.id)}
 					<div class="tableRow" class:nearlyFull={slot.remaining <= 2 && slot.remaining > 0}>
 						<span class="cellDate">{formatDate(slot.date)}</span>
-						<span>{formatTime(slot.startTime)} – {formatTime(slot.endTime)}</span>
+						<span
+							>{formatTime(slot.startTime)} – {formatTime(slot.endTime)}
+							<span class="wagonTag"
+								>{WAGON_CONFIG[slot.wagonType as WagonType]?.shortLabel ?? slot.wagonType}</span
+							></span
+						>
 						<span class="cellStatus">
 							{#if !slot.isActive}
 								<span class="badge badgeCancelled">Inactive</span>
@@ -97,7 +103,21 @@
 	/* Grid columns specific to this dashboard table */
 	.tableHeader,
 	.tableRow {
-		grid-template-columns: 140px 170px 130px 1fr 1fr 120px;
+		grid-template-columns: 140px 200px 130px 1fr 1fr 120px;
+	}
+
+	.wagonTag {
+		display: inline-block;
+		margin-left: 0.35rem;
+		padding: 0.1rem 0.35rem;
+		font-size: 0.65rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		border-radius: 999px;
+		background: var(--color-cream-dk);
+		color: var(--color-forest);
+		vertical-align: middle;
 	}
 
 	.slotsTable {

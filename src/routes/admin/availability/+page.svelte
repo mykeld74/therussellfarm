@@ -3,6 +3,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import { enhance } from '$app/forms';
 	import { formatDate, formatTime } from '$lib/utils';
+	import { WAGON_CONFIG, WAGON_TYPES, type WagonType } from '$lib/booking-capacity';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -17,12 +18,12 @@
 	}
 
 	// Form state
+	let newWagonType = $state<WagonType>('horse');
 	let newDate = $state('');
 	let newStartTime = $state('10:00');
 	let newEndTime = $state('');
 	let endTimeTouched = $state(false);
-	// Wagon seat capacity (1 adult = 2 seats, 1 kid = 1 seat)
-	let newCapacity = $state(16);
+	let newCapacity = $state<number>(WAGON_CONFIG.horse.seatCapacity);
 	let formError = $state('');
 	let formSuccess = $state('');
 	let submitting = $state(false);
@@ -40,9 +41,17 @@
 			: data.allowReservationsFrom
 	);
 
+	let wagonInterval = $derived(WAGON_CONFIG[newWagonType].intervalMinutes);
+
+	$effect(() => {
+		// When wagon type changes, reset capacity to that type's default
+		newCapacity = WAGON_CONFIG[newWagonType].seatCapacity;
+		endTimeTouched = false;
+	});
+
 	$effect(() => {
 		if (!endTimeTouched) {
-			newEndTime = addMinutesToTime(newStartTime, 15);
+			newEndTime = addMinutesToTime(newStartTime, wagonInterval);
 		}
 	});
 
@@ -76,7 +85,8 @@
 					date: newDate,
 					startTime: newStartTime,
 					endTime: newEndTime,
-					maxCapacity: newCapacity
+					maxCapacity: newCapacity,
+					wagonType: newWagonType
 				})
 			});
 			if (!res.ok) throw new Error('Failed to create');
@@ -104,7 +114,8 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					date: newDate,
-					maxCapacity: newCapacity
+					maxCapacity: newCapacity,
+					wagonType: newWagonType
 				})
 			});
 			const payload = await res.json().catch(() => ({}));
@@ -201,6 +212,29 @@
 
 				<form onsubmit={createSlot} class="slotForm">
 					<div class="field">
+						<span class="fieldLabel" id="wagonTypeLabel">Wagon type</span>
+						<div class="wagonTypeRadios" role="radiogroup" aria-labelledby="wagonTypeLabel">
+							{#each WAGON_TYPES as type (type)}
+								<label class="wagonTypeOption" class:selected={newWagonType === type}>
+									<input
+										type="radio"
+										name="wagonType"
+										value={type}
+										bind:group={newWagonType}
+									/>
+									<span class="wagonTypeText">
+										<span class="wagonTypeName">{WAGON_CONFIG[type].shortLabel}</span>
+										<span class="wagonTypeMeta"
+											>{WAGON_CONFIG[type].seatCapacity} seats · every {WAGON_CONFIG[type]
+												.intervalMinutes} min</span
+										>
+									</span>
+								</label>
+							{/each}
+						</div>
+					</div>
+
+					<div class="field">
 						<label for="slotDate">Date</label>
 						<input id="slotDate" type="date" bind:value={newDate} min={minDate} required />
 					</div>
@@ -246,7 +280,10 @@
 								>+</button
 							>
 						</div>
-						<span class="fieldHint">Default 16 — 1 adult = 2 seats, 1 child = 1 seat.</span>
+						<span class="fieldHint"
+							>Default {WAGON_CONFIG[newWagonType].seatCapacity} — 1 adult = 2 seats, 1 child = 1
+							seat. Interval {wagonInterval} min.</span
+						>
 					</div>
 
 					<button
@@ -256,7 +293,9 @@
 						disabled={submitting || fullDayLoading || !newDate}
 						onclick={createFullDay}
 					>
-						{fullDayLoading ? 'Adding full day…' : 'Add full day (10:00–4:00 every 15 min)'}
+						{fullDayLoading
+							? 'Adding full day…'
+							: `Add full day (10:00–4:00 every ${wagonInterval} min)`}
 					</button>
 
 					<button type="submit" class="btn btnPrimary" style="width:100%;" disabled={submitting}>
@@ -267,8 +306,9 @@
 				<div class="seedSection">
 					<h3>Holiday slots (Sat & Sun)</h3>
 					<p class="seedDesc">
-						Add slots for Fri–Sun: Friday after Thanksgiving through the last Sunday before
-						Christmas, every 15&nbsp;min from 10:00&nbsp;am–4:00&nbsp;pm.
+						Add Fri–Sun slots from the Friday after Thanksgiving through the last Sunday before
+						Christmas: horse every 15&nbsp;min (16 seats) and tractor every 30&nbsp;min (24 seats),
+						10:00&nbsp;am–4:00&nbsp;pm.
 					</p>
 					{#if seedError}
 						<div class="alert alertError">{seedError}</div>
@@ -359,6 +399,10 @@
 								<div class="slotDate">{formatDate(slot.date)}</div>
 								<div class="slotTime">
 									{formatTime(slot.startTime)} – {formatTime(slot.endTime)}
+									<span class="wagonBadge"
+										>{WAGON_CONFIG[slot.wagonType as WagonType]?.shortLabel ??
+											slot.wagonType}</span
+									>
 								</div>
 							</div>
 
@@ -508,7 +552,8 @@
 		margin-bottom: 1rem;
 	}
 
-	.slotForm .field label {
+	.slotForm .field > label,
+	.slotForm .fieldLabel {
 		font-size: 0.85rem;
 		font-weight: 600;
 		color: var(--color-text-muted);
@@ -524,7 +569,8 @@
 		line-height: 1.3;
 	}
 
-	.slotForm input {
+	.slotForm .field > input,
+	.slotForm .timeRow input {
 		width: 100%;
 		padding: 0.55rem 0.75rem;
 		border: 1.5px solid var(--color-border);
@@ -532,6 +578,94 @@
 		font-family: var(--font-sans);
 		font-size: 0.9rem;
 		background: var(--color-white);
+	}
+
+	.wagonTypeRadios {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.5rem;
+	}
+
+	.wagonTypeOption {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.35rem;
+		margin: 0;
+		padding: 0.7rem 0.65rem;
+		border: 1.5px solid var(--color-border);
+		border-radius: var(--radius);
+		background: var(--color-white);
+		cursor: pointer;
+		font-weight: 400;
+		color: var(--color-text);
+		transition:
+			border-color 0.15s,
+			background 0.15s;
+	}
+
+	.wagonTypeOption:hover {
+		border-color: var(--color-forest);
+	}
+
+	.wagonTypeOption.selected {
+		border-color: var(--color-forest);
+		background: color-mix(in srgb, var(--color-forest) 8%, white);
+		box-shadow: inset 0 0 0 1px var(--color-forest);
+	}
+
+	.wagonTypeOption:focus-within {
+		outline: 2px solid var(--color-forest);
+		outline-offset: 1px;
+	}
+
+	.wagonTypeOption input[type='radio'] {
+		position: absolute;
+		opacity: 0;
+		width: 1px;
+		height: 1px;
+		margin: 0;
+		padding: 0;
+	}
+
+	.wagonTypeText {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+		min-width: 0;
+		width: 100%;
+	}
+
+	.wagonTypeName {
+		font-size: 0.875rem;
+		font-weight: 700;
+		color: var(--color-forest-dk);
+		line-height: 1.2;
+	}
+
+	.wagonTypeMeta {
+		font-size: 0.7rem;
+		color: var(--color-text-muted);
+		line-height: 1.35;
+	}
+
+	.wagonTypeOption.selected .wagonTypeName {
+		color: var(--color-forest);
+	}
+
+	.wagonBadge {
+		display: inline-block;
+		margin-left: 0.4rem;
+		padding: 0.1rem 0.4rem;
+		font-size: 0.7rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		border-radius: 999px;
+		background: var(--color-cream-dk);
+		color: var(--color-forest);
+		vertical-align: middle;
 	}
 
 	.timeRow {

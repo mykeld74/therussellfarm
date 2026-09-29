@@ -17,7 +17,9 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			slotId: bookings.slotId,
 			date: availabilitySlots.date,
 			startTime: availabilitySlots.startTime,
-			endTime: availabilitySlots.endTime
+			endTime: availabilitySlots.endTime,
+			wagonType: availabilitySlots.wagonType,
+			maxCapacity: availabilitySlots.maxCapacity
 		})
 		.from(bookings)
 		.innerJoin(availabilitySlots, eq(bookings.slotId, availabilitySlots.id))

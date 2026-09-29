@@ -2,11 +2,13 @@
 	import type { PageData } from './$types';
 	import type { SlotSummary } from '$lib/types';
 	import {
-		WAGON_SEAT_CAPACITY,
+		WAGON_CONFIG,
 		seatsForParty,
 		maxAdultsForKids,
 		maxKidsForAdults,
-		partyFitsWagon
+		partyFitsWagon,
+		wagonSeatCapacity,
+		type WagonType
 	} from '$lib/booking-capacity';
 	import { formatDateLong, formatTime, isUpcoming, badgeClass } from '$lib/utils';
 	import { invalidateAll } from '$app/navigation';
@@ -51,15 +53,17 @@
 
 	const phoneMaskConfig = { mask: '(000) 000-0000' };
 
+	let wagonType = $derived(data.booking.wagonType as WagonType);
+	let capacity = $derived(wagonSeatCapacity(wagonType));
 	let seatsNeeded = $derived(seatsForParty(partySizeAdults, partySizeKids));
-	let canSaveParty = $derived(partyFitsWagon(partySizeAdults, partySizeKids));
+	let canSaveParty = $derived(partyFitsWagon(partySizeAdults, partySizeKids, wagonType));
 	let editable = $derived(
 		data.booking.status === 'confirmed' && isUpcoming(data.booking.date)
 	);
 
 	function adjustAdults(delta: number) {
 		const next = partySizeAdults + delta;
-		partySizeAdults = Math.max(0, Math.min(maxAdultsForKids(partySizeKids), next));
+		partySizeAdults = Math.max(0, Math.min(maxAdultsForKids(partySizeKids, wagonType), next));
 	}
 
 	function adjustKids(delta: number) {
@@ -68,7 +72,7 @@
 			partySizeKids = Math.max(0, next);
 			return;
 		}
-		partySizeKids = Math.min(maxKidsForAdults(partySizeAdults), Math.max(0, next));
+		partySizeKids = Math.min(maxKidsForAdults(partySizeAdults, wagonType), Math.max(0, next));
 	}
 
 	async function loadMonthAvailability(year: number, month: number) {
@@ -80,7 +84,9 @@
 			const nextMonth = month === 11 ? 0 : month + 1;
 			const nextYear = month === 11 ? year + 1 : year;
 			const to = `${nextYear}-${String(nextMonth + 1).padStart(2, '0')}-${lastDay}`;
-			const res = await fetch(`/api/availability?from=${from}&to=${to}`);
+			const res = await fetch(
+				`/api/availability?from=${from}&to=${to}&wagonType=${encodeURIComponent(wagonType)}`
+			);
 			if (!res.ok) throw new Error();
 			const slots: SlotSummary[] = await res.json();
 			const needed = seatsForParty(partySizeAdults, partySizeKids);
@@ -91,7 +97,10 @@
 						(s) =>
 							s.remaining >= needed ||
 							s.id === data.booking.slotId ||
-							(s.id === slotId && s.remaining + seatsForParty(data.booking.partySizeAdults, data.booking.partySizeKids) >= needed)
+							(s.id === slotId &&
+								s.remaining +
+									seatsForParty(data.booking.partySizeAdults, data.booking.partySizeKids) >=
+									needed)
 					)
 					.map((s) => s.date)
 			);
@@ -106,7 +115,9 @@
 		scheduleLoading = true;
 		scheduleError = '';
 		try {
-			const res = await fetch(`/api/availability?from=${date}&to=${date}`);
+			const res = await fetch(
+				`/api/availability?from=${date}&to=${date}&wagonType=${encodeURIComponent(wagonType)}`
+			);
 			if (!res.ok) throw new Error();
 			const slots: SlotSummary[] = await res.json();
 			const needed = seatsForParty(partySizeAdults, partySizeKids);
@@ -396,7 +407,8 @@
 		<section class="editSection">
 			<h2>Your group</h2>
 			<p class="sectionHint">
-				Wagon holds {WAGON_SEAT_CAPACITY} seats (1 adult = 2 seats). Using {seatsNeeded} seats.
+				Wagon holds {capacity} seats (1 adult = 2 seats). Using {seatsNeeded} seats.
+				{WAGON_CONFIG[wagonType].label}.
 			</p>
 			<div class="partyRow">
 				<div class="field">
@@ -409,7 +421,7 @@
 						<button
 							type="button"
 							onclick={() => adjustAdults(1)}
-							disabled={partySizeAdults >= maxAdultsForKids(partySizeKids)}>+</button
+							disabled={partySizeAdults >= maxAdultsForKids(partySizeKids, wagonType)}>+</button
 						>
 					</div>
 				</div>
@@ -423,7 +435,8 @@
 						<button
 							type="button"
 							onclick={() => adjustKids(1)}
-							disabled={partySizeAdults < 1 || partySizeKids >= maxKidsForAdults(partySizeAdults)}
+							disabled={partySizeAdults < 1 ||
+								partySizeKids >= maxKidsForAdults(partySizeAdults, wagonType)}
 							>+</button
 						>
 					</div>

@@ -3,30 +3,21 @@ import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { availabilitySlots } from '$lib/server/db/schema';
 import { requireAdmin } from '$lib/server/admin-guard';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
+import { isWagonType, WAGON_CONFIG, type WagonType } from '$lib/booking-capacity';
+import { getWagonSlotTimes } from '$lib/server/wagon-slots';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-
-function getSlotTimes(): { start: string; end: string }[] {
-	const slots: { start: string; end: string }[] = [];
-	for (let h = 10; h <= 15; h++) {
-		for (let m = 0; m < 60; m += 15) {
-			const start = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:00`;
-			const endM = m + 15;
-			const endH = endM === 60 ? h + 1 : h;
-			const endMNorm = endM % 60;
-			const end = `${endH.toString().padStart(2, '0')}:${endMNorm.toString().padStart(2, '0')}:00`;
-			slots.push({ start, end });
-		}
-	}
-	return slots;
-}
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	requireAdmin(locals);
 
 	const body = await request.json().catch(() => ({}));
-	const { date, maxCapacity } = body as { date?: string; maxCapacity?: number };
+	const { date, maxCapacity, wagonType: rawType } = body as {
+		date?: string;
+		maxCapacity?: number;
+		wagonType?: string;
+	};
 
 	if (!date) {
 		return json({ error: 'Date is required' }, { status: 400 });
@@ -36,17 +27,20 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ error: 'Invalid date format (expected YYYY-MM-DD)' }, { status: 400 });
 	}
 
-	const cap = Number(maxCapacity ?? 16);
+	const wagonType: WagonType = isWagonType(rawType) ? rawType : 'horse';
+	const defaultCap = WAGON_CONFIG[wagonType].seatCapacity;
+	const interval = WAGON_CONFIG[wagonType].intervalMinutes;
+	const cap = Number(maxCapacity ?? defaultCap);
 	if (!Number.isFinite(cap) || cap < 1 || cap > 100) {
 		return json({ error: 'Capacity must be between 1 and 100' }, { status: 400 });
 	}
 
-	const slotTimes = getSlotTimes();
+	const slotTimes = getWagonSlotTimes(wagonType);
 
 	const existing = await db
 		.select({ startTime: availabilitySlots.startTime })
 		.from(availabilitySlots)
-		.where(eq(availabilitySlots.date, date));
+		.where(and(eq(availabilitySlots.date, date), eq(availabilitySlots.wagonType, wagonType)));
 
 	const existingSet = new Set(existing.map((r) => r.startTime));
 
@@ -54,6 +48,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		date: string;
 		startTime: string;
 		endTime: string;
+		wagonType: WagonType;
 		maxCapacity: number;
 		isActive: boolean;
 	}[] = [];
@@ -64,6 +59,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			date,
 			startTime: start,
 			endTime: end,
+			wagonType,
 			maxCapacity: cap,
 			isActive: true
 		});
@@ -71,7 +67,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	if (toInsert.length === 0) {
 		return json(
-			{ message: 'No new slots to add; all 15-minute slots for this date already exist.', created: 0 },
+			{
+				message: `No new slots to add; all ${interval}-minute ${WAGON_CONFIG[wagonType].shortLabel.toLowerCase()} slots for this date already exist.`,
+				created: 0
+			},
 			{ status: 200 }
 		);
 	}
@@ -80,10 +79,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	return json(
 		{
-			message: `Created ${toInsert.length} slots for ${date} (every 15 minutes from 10:00 to 4:00).`,
+			message: `Created ${toInsert.length} ${WAGON_CONFIG[wagonType].shortLabel.toLowerCase()} slots for ${date} (every ${interval} minutes from 10:00 to 4:00).`,
 			created: toInsert.length
 		},
 		{ status: 201 }
 	);
 };
-

@@ -4,15 +4,18 @@ import { user } from './auth.schema';
 
 // --- Enums ---
 export const bookingStatusEnum = pgEnum('booking_status', ['confirmed', 'cancelled']);
+export const wagonTypeEnum = pgEnum('wagon_type', ['horse', 'tractor']);
 
 // --- availability_slots ---
-// One row = one bookable time window on one calendar date
+// One row = one bookable time window on one calendar date for one wagon type
 export const availabilitySlots = pgTable('availability_slots', {
 	id: serial('id').primaryKey(),
 	date: date('date').notNull(),
 	startTime: time('start_time').notNull(),
 	endTime: time('end_time').notNull(),
-	/** Wagon seat capacity (1 adult = 2 seats, 1 kid = 1 seat). Default 16. */
+	/** horse = 16 seats / 15 min; tractor = 24 seats / 30 min */
+	wagonType: wagonTypeEnum('wagon_type').notNull().default('horse'),
+	/** Wagon seat capacity (1 adult = 2 seats, 1 kid = 1 seat). */
 	maxCapacity: integer('max_capacity').notNull().default(16),
 	isActive: boolean('is_active').notNull().default(true),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()

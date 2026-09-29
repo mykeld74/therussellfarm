@@ -22,6 +22,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 			date: availabilitySlots.date,
 			startTime: availabilitySlots.startTime,
 			endTime: availabilitySlots.endTime,
+			wagonType: availabilitySlots.wagonType,
 			maxCapacity: availabilitySlots.maxCapacity,
 			isActive: availabilitySlots.isActive,
 			createdAt: availabilitySlots.createdAt,

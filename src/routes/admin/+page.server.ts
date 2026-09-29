@@ -13,6 +13,7 @@ export const load: PageServerLoad = async () => {
 			date: availabilitySlots.date,
 			startTime: availabilitySlots.startTime,
 			endTime: availabilitySlots.endTime,
+			wagonType: availabilitySlots.wagonType,
 			maxCapacity: availabilitySlots.maxCapacity,
 			isActive: availabilitySlots.isActive,
 			bookedCount: count(bookings.id),

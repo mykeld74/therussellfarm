@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { BookingFormData } from '$lib/types';
+	import { WAGON_CONFIG } from '$lib/booking-capacity';
 
 	let {
 		data,
@@ -30,6 +31,10 @@
 			year: 'numeric'
 		});
 	}
+
+	let rideLabel = $derived(
+		data.wagonType ? WAGON_CONFIG[data.wagonType].label : 'Wagon ride'
+	);
 </script>
 
 <div class="reviewStep">
@@ -42,6 +47,10 @@
 			<div class="reviewSection">
 				<h3>Experience</h3>
 				<p class="experienceName">Christmas Tree Wagon Ride & Cabin Experience</p>
+				<div class="reviewRow">
+					<span>Ride</span>
+					<strong>{rideLabel}</strong>
+				</div>
 			</div>
 
 			<div class="reviewDivider"></div>

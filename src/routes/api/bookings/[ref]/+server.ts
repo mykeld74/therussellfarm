@@ -153,11 +153,20 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 		body.partySizeAdults !== undefined || body.partySizeKids !== undefined;
 
 	if (partyChanging) {
-		if (!partyFitsWagon(nextAdults, nextKids)) {
+		const [currentSlot] = await db
+			.select({
+				wagonType: availabilitySlots.wagonType,
+				maxCapacity: availabilitySlots.maxCapacity
+			})
+			.from(availabilitySlots)
+			.where(eq(availabilitySlots.id, booking.slotId))
+			.limit(1);
+
+		const type = currentSlot?.wagonType ?? 'horse';
+		if (!partyFitsWagon(nextAdults, nextKids, type)) {
 			return json(
 				{
-					error:
-						'Party must include at least 1 adult and fit one wagon (8 adults or 16 kids, or any mix).'
+					error: `Party must include at least 1 adult and fit this wagon (${currentSlot?.maxCapacity ?? 16} seats).`
 				},
 				{ status: 400 }
 			);
@@ -184,6 +193,7 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 		const [targetSlot] = await db
 			.select({
 				id: availabilitySlots.id,
+				wagonType: availabilitySlots.wagonType,
 				maxCapacity: availabilitySlots.maxCapacity,
 				isActive: availabilitySlots.isActive,
 				bookedSeats: bookedSeatsSql
@@ -203,6 +213,15 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 
 		if (!targetSlot || !targetSlot.isActive) {
 			return json({ error: 'Selected time slot is not available' }, { status: 400 });
+		}
+
+		if (!partyFitsWagon(nextAdults, nextKids, targetSlot.wagonType)) {
+			return json(
+				{
+					error: `Party must fit this wagon (${targetSlot.maxCapacity} seats).`
+				},
+				{ status: 400 }
+			);
 		}
 
 		const othersSeats = Number(targetSlot.bookedSeats);

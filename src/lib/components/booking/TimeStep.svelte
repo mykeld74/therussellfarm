@@ -1,17 +1,19 @@
 <script lang="ts">
-	import type { SlotSummary } from '$lib/types';
-	import { seatsForParty } from '$lib/booking-capacity';
+	import type { SlotSummary, WagonType } from '$lib/types';
+	import { seatsForParty, WAGON_CONFIG } from '$lib/booking-capacity';
 
 	let {
 		date,
 		partySizeAdults,
 		partySizeKids,
+		wagonType,
 		onSlotSelected,
 		onBack
 	}: {
 		date: string;
 		partySizeAdults: number;
 		partySizeKids: number;
+		wagonType: WagonType;
 		onSlotSelected: (slot: SlotSummary) => void;
 		onBack: () => void;
 	} = $props();
@@ -21,6 +23,7 @@
 	let error = $state('');
 
 	let seatsNeeded = $derived(seatsForParty(partySizeAdults, partySizeKids));
+	let wagonLabel = $derived(WAGON_CONFIG[wagonType].label);
 
 	/** Slots that fit this party, partially filled first so wagons fill before new ones open. */
 	let displaySlots = $derived(
@@ -40,14 +43,16 @@
 	);
 
 	$effect(() => {
-		if (date) fetchSlots(date);
+		if (date) fetchSlots(date, wagonType);
 	});
 
-	async function fetchSlots(d: string) {
+	async function fetchSlots(d: string, type: WagonType) {
 		loading = true;
 		error = '';
 		try {
-			const res = await fetch(`/api/availability?from=${d}&to=${d}`);
+			const res = await fetch(
+				`/api/availability?from=${d}&to=${d}&wagonType=${encodeURIComponent(type)}`
+			);
 			if (!res.ok) throw new Error();
 			slots = await res.json();
 		} catch {
@@ -82,8 +87,8 @@
 	<button class="backBtn" onclick={onBack}>← Back to calendar</button>
 	<h2>Choose a Time</h2>
 	<p class="stepHint">
-		<strong>{formatDisplayDate(date)}</strong> — wagons that fit your group are listed first
-		(partially filled wagons preferred).
+		<strong>{formatDisplayDate(date)}</strong> · {wagonLabel} — wagons that fit your group are
+		listed first (partially filled wagons preferred).
 	</p>
 
 	{#if loading}

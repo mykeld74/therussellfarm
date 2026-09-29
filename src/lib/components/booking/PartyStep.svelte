@@ -1,32 +1,39 @@
 <script lang="ts">
-	import type { BookingFormData } from '$lib/types';
+	import type { BookingFormData, WagonType } from '$lib/types';
 	import {
-		WAGON_SEAT_CAPACITY,
+		WAGON_CONFIG,
 		seatsForParty,
 		maxAdultsForKids,
 		maxKidsForAdults,
-		partyFitsWagon
+		partyFitsWagon,
+		wagonSeatCapacity
 	} from '$lib/booking-capacity';
 	import { untrack } from 'svelte';
 
 	let {
+		wagonType,
 		initialData,
-		onSubmit
+		onSubmit,
+		onBack
 	}: {
+		wagonType: WagonType;
 		initialData: BookingFormData;
 		onSubmit: (data: Partial<BookingFormData>) => void;
+		onBack: () => void;
 	} = $props();
 
 	let partySizeAdults = $state(untrack(() => initialData.partySizeAdults || 2));
 	let partySizeKids = $state(untrack(() => initialData.partySizeKids ?? 0));
 
+	let config = $derived(WAGON_CONFIG[wagonType]);
+	let capacity = $derived(wagonSeatCapacity(wagonType));
 	let seatsNeeded = $derived(seatsForParty(partySizeAdults, partySizeKids));
-	let seatsRemaining = $derived(WAGON_SEAT_CAPACITY - seatsNeeded);
-	let canContinue = $derived(partyFitsWagon(partySizeAdults, partySizeKids));
+	let seatsRemaining = $derived(capacity - seatsNeeded);
+	let canContinue = $derived(partyFitsWagon(partySizeAdults, partySizeKids, wagonType));
 
 	function adjustAdults(delta: number) {
 		const next = partySizeAdults + delta;
-		const maxAdults = maxAdultsForKids(partySizeKids);
+		const maxAdults = maxAdultsForKids(partySizeKids, wagonType);
 		partySizeAdults = Math.max(0, Math.min(maxAdults, next));
 	}
 
@@ -36,7 +43,7 @@
 			partySizeKids = Math.max(0, next);
 			return;
 		}
-		partySizeKids = Math.min(maxKidsForAdults(partySizeAdults), Math.max(0, next));
+		partySizeKids = Math.min(maxKidsForAdults(partySizeAdults, wagonType), Math.max(0, next));
 	}
 
 	function handleSubmit(e: SubmitEvent) {
@@ -49,8 +56,9 @@
 <div class="partyStep">
 	<h2>Your Group</h2>
 	<p class="stepHint">
-		Each wagon holds up to 8 adults or 16 children (1 adult uses 2 child seats). We'll show times
-		that fit your group and help fill each wagon before it heads out.
+		The {config.label.toLowerCase()} holds up to {config.maxAdults} adults ({config.seatCapacity}
+		seats — 1 adult uses 2 child seats). We'll show times that fit your group and help fill each
+		wagon before it heads out.
 	</p>
 
 	<form class="partyForm" onsubmit={handleSubmit}>
@@ -64,12 +72,19 @@
 						aria-label="Decrease adults"
 						disabled={partySizeAdults <= 0}>−</button
 					>
-					<input id="adults" type="number" value={partySizeAdults} min="0" max="8" readonly />
+					<input
+						id="adults"
+						type="number"
+						value={partySizeAdults}
+						min="0"
+						max={config.maxAdults}
+						readonly
+					/>
 					<button
 						type="button"
 						onclick={() => adjustAdults(1)}
 						aria-label="Increase adults"
-						disabled={partySizeAdults >= maxAdultsForKids(partySizeKids)}>+</button
+						disabled={partySizeAdults >= maxAdultsForKids(partySizeKids, wagonType)}>+</button
 					>
 				</div>
 			</div>
@@ -83,13 +98,20 @@
 						aria-label="Decrease children"
 						disabled={partySizeKids <= 0}>−</button
 					>
-					<input id="kids" type="number" value={partySizeKids} min="0" max="14" readonly />
+					<input
+						id="kids"
+						type="number"
+						value={partySizeKids}
+						min="0"
+						max={capacity - 2}
+						readonly
+					/>
 					<button
 						type="button"
 						onclick={() => adjustKids(1)}
 						aria-label="Increase children"
-						disabled={partySizeAdults < 1 || partySizeKids >= maxKidsForAdults(partySizeAdults)}
-						>+</button
+						disabled={partySizeAdults < 1 ||
+							partySizeKids >= maxKidsForAdults(partySizeAdults, wagonType)}>+</button
 					>
 				</div>
 			</div>
@@ -99,14 +121,14 @@
 			<div class="seatMeterBar">
 				<div
 					class="seatMeterFill"
-					style="width: {Math.min(100, (seatsNeeded / WAGON_SEAT_CAPACITY) * 100)}%"
+					style="width: {Math.min(100, (seatsNeeded / capacity) * 100)}%"
 				></div>
 			</div>
 			<p class="seatMeterLabel">
 				{#if partySizeAdults < 1}
 					Add at least one adult to continue.
 				{:else}
-					{seatsNeeded} of {WAGON_SEAT_CAPACITY} wagon seats
+					{seatsNeeded} of {capacity} wagon seats
 					{#if seatsRemaining > 0}
 						· {seatsRemaining} seat{seatsRemaining === 1 ? '' : 's'} free for other families
 					{:else}
@@ -116,9 +138,12 @@
 			</p>
 		</div>
 
-		<button type="submit" class="btn btnPrimary btnLg continueBtn" disabled={!canContinue}>
-			Continue to Dates →
-		</button>
+		<div class="navRow">
+			<button type="button" class="btn btnSecondary" onclick={onBack}>← Back</button>
+			<button type="submit" class="btn btnPrimary btnLg continueBtn" disabled={!canContinue}>
+				Continue to Dates →
+			</button>
+		</div>
 	</form>
 </div>
 
@@ -227,7 +252,13 @@
 		color: var(--color-text-muted);
 	}
 
+	.navRow {
+		display: flex;
+		gap: 0.75rem;
+		align-items: center;
+	}
+
 	.continueBtn {
-		width: 100%;
+		flex: 1;
 	}
 </style>

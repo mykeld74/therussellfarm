@@ -47,16 +47,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const adults = Number(partySizeAdults);
 	const kids = Number(partySizeKids ?? 0);
 
-	if (!partyFitsWagon(adults, kids)) {
-		return json(
-			{
-				error:
-					'Party must include at least 1 adult and fit one wagon (8 adults or 16 kids, or any mix).'
-			},
-			{ status: 400 }
-		);
-	}
-
 	const seatsNeeded = seatsForParty(adults, kids);
 	const parsedSlotId = Number(slotId);
 	if (!Number.isFinite(parsedSlotId)) {
@@ -79,6 +69,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			date: availabilitySlots.date,
 			startTime: availabilitySlots.startTime,
 			endTime: availabilitySlots.endTime,
+			wagonType: availabilitySlots.wagonType,
 			maxCapacity: availabilitySlots.maxCapacity,
 			isActive: availabilitySlots.isActive
 		})
@@ -88,6 +79,15 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	if (!slot || !slot.isActive) {
 		error(400, 'Slot not available');
+	}
+
+	if (!partyFitsWagon(adults, kids, slot.wagonType)) {
+		return json(
+			{
+				error: `Party must include at least 1 adult and fit this wagon (${slot.maxCapacity} seats).`
+			},
+			{ status: 400 }
+		);
 	}
 
 	const bookingRef = generateBookingRef();
