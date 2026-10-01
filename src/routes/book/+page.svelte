@@ -169,7 +169,7 @@
 
 			<div class="stepContent">
 				{#if step === 'ride'}
-					<RideStep initialType={formData.wagonType} onSubmit={handleRideSubmit} />
+					<RideStep onSubmit={handleRideSubmit} />
 				{:else if step === 'party' && formData.wagonType}
 					<PartyStep
 						wagonType={formData.wagonType}
@@ -340,6 +340,7 @@
 		}
 		.progressConnector {
 			min-width: 0.75rem;
+			margin-bottom: 0;
 		}
 	}
 </style>

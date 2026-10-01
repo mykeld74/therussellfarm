@@ -83,15 +83,22 @@
 </div>
 
 <style>
+	.detailsStep {
+		max-width: 36rem;
+		margin-inline: auto;
+	}
+
 	.detailsStep h2 {
 		color: var(--color-forest-dk);
 		font-size: 1.5rem;
 		margin-bottom: 0.375rem;
+		text-align: center;
 	}
 
 	.stepHint {
 		color: var(--color-text-muted);
-		margin-bottom: 1.75rem;
+		margin: 0 auto 1.75rem;
+		text-align: center;
 	}
 
 	.backBtn {
@@ -111,7 +118,7 @@
 	}
 
 	.detailsForm {
-		max-width: 480px;
+		max-width: none;
 	}
 
 	.fieldHint {

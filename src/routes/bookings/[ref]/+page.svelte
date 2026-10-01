@@ -132,12 +132,7 @@
 						s.id === data.booking.slotId ? s.remaining + currentSeats : s.remaining;
 					return effectiveRemaining >= needed;
 				})
-				.sort((a, b) => {
-					const aPartial = a.bookedSeats > 0 && a.id !== data.booking.slotId ? 0 : 1;
-					const bPartial = b.bookedSeats > 0 && b.id !== data.booking.slotId ? 0 : 1;
-					if (aPartial !== bPartial) return aPartial - bPartial;
-					return a.startTime.localeCompare(b.startTime);
-				});
+				.sort((a, b) => a.startTime.localeCompare(b.startTime));
 		} catch {
 			scheduleError = 'Could not load time slots.';
 			daySlots = [];

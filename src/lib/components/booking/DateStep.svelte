@@ -213,15 +213,22 @@
 </div>
 
 <style>
+	.dateStep {
+		max-width: 720px;
+		margin-inline: auto;
+	}
+
 	.dateStep h2 {
 		color: var(--color-forest-dk);
 		font-size: 1.5rem;
 		margin-bottom: 0.375rem;
+		text-align: center;
 	}
 
 	.stepHint {
 		color: var(--color-text-muted);
-		margin-bottom: 1.5rem;
+		margin: 0 auto 1.5rem;
+		text-align: center;
 	}
 
 	.backBtn {
@@ -245,7 +252,6 @@
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-lg);
 		padding: 1.5rem;
-		max-width: 720px;
 	}
 
 	.calHeader {

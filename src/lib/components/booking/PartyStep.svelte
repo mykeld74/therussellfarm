@@ -57,8 +57,7 @@
 	<h2>Your Group</h2>
 	<p class="stepHint">
 		The {config.label.toLowerCase()} holds up to {config.maxAdults} adults ({config.seatCapacity}
-		seats — 1 adult uses 2 child seats). We'll show times that fit your group and help fill each
-		wagon before it heads out.
+		seats — 1 adult uses 2 child seats). We'll show times that fit your group.
 	</p>
 
 	<form class="partyForm" onsubmit={handleSubmit}>
@@ -148,21 +147,28 @@
 </div>
 
 <style>
+	.partyStep {
+		max-width: 36rem;
+		margin-inline: auto;
+	}
+
 	.partyStep h2 {
 		color: var(--color-forest-dk);
 		font-size: 1.5rem;
 		margin-bottom: 0.375rem;
+		text-align: center;
 	}
 
 	.stepHint {
 		color: var(--color-text-muted);
-		margin-bottom: 1.75rem;
-		max-width: 36rem;
+		margin: 0 auto 1.75rem;
+		max-width: 32rem;
 		line-height: 1.5;
+		text-align: center;
 	}
 
 	.partyForm {
-		max-width: 480px;
+		max-width: none;
 	}
 
 	.partyRow {

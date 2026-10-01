@@ -25,21 +25,12 @@
 	let seatsNeeded = $derived(seatsForParty(partySizeAdults, partySizeKids));
 	let wagonLabel = $derived(WAGON_CONFIG[wagonType].label);
 
-	/** Slots that fit this party, partially filled first so wagons fill before new ones open. */
+	/** Slots that fit this party, in start-time order. */
 	let displaySlots = $derived(
 		slots
 			.filter((s) => s.remaining >= seatsNeeded)
 			.slice()
-			.sort((a, b) => {
-				const aPartial = a.bookedSeats > 0 ? 0 : 1;
-				const bPartial = b.bookedSeats > 0 ? 0 : 1;
-				if (aPartial !== bPartial) return aPartial - bPartial;
-				// Fuller wagons first among partials
-				if (aPartial === 0 && b.bookedSeats !== a.bookedSeats) {
-					return b.bookedSeats - a.bookedSeats;
-				}
-				return a.startTime.localeCompare(b.startTime);
-			})
+			.sort((a, b) => a.startTime.localeCompare(b.startTime))
 	);
 
 	$effect(() => {
@@ -87,8 +78,7 @@
 	<button class="backBtn" onclick={onBack}>← Back to calendar</button>
 	<h2>Choose a Time</h2>
 	<p class="stepHint">
-		<strong>{formatDisplayDate(date)}</strong> · {wagonLabel} — wagons that fit your group are
-		listed first (partially filled wagons preferred).
+		<strong>{formatDisplayDate(date)}</strong> · {wagonLabel} — choose a time that fits your group.
 	</p>
 
 	{#if loading}
@@ -121,15 +111,22 @@
 </div>
 
 <style>
+	.timeStep {
+		max-width: 720px;
+		margin-inline: auto;
+	}
+
 	.timeStep h2 {
 		color: var(--color-forest-dk);
 		font-size: 1.5rem;
 		margin-bottom: 0.375rem;
+		text-align: center;
 	}
 
 	.stepHint {
 		color: var(--color-text-muted);
-		margin-bottom: 1.75rem;
+		margin: 0 auto 1.75rem;
+		text-align: center;
 	}
 
 	.backBtn {

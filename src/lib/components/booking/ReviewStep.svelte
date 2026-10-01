@@ -131,15 +131,22 @@
 </div>
 
 <style>
+	.reviewStep {
+		max-width: 36rem;
+		margin-inline: auto;
+	}
+
 	.reviewStep h2 {
 		color: var(--color-forest-dk);
 		font-size: 1.5rem;
 		margin-bottom: 0.375rem;
+		text-align: center;
 	}
 
 	.stepHint {
 		color: var(--color-text-muted);
-		margin-bottom: 1.75rem;
+		margin: 0 auto 1.75rem;
+		text-align: center;
 	}
 
 	.backBtn {
@@ -163,7 +170,6 @@
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-lg);
 		overflow: hidden;
-		max-width: 480px;
 	}
 
 	.reviewSection {
@@ -216,7 +222,6 @@
 
 	.confirmActions {
 		margin-top: 1.5rem;
-		max-width: 480px;
 	}
 
 	.confirmBtn {
