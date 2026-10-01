@@ -69,9 +69,9 @@ export const POST: RequestHandler = async ({ locals }) => {
 	}[] = [];
 
 	for (const wagonType of WAGON_TYPES) {
-		const slotTimes = getWagonSlotTimes(wagonType);
 		const maxCapacity = WAGON_CONFIG[wagonType].seatCapacity;
 		for (const date of dates) {
+			const slotTimes = getWagonSlotTimes(wagonType, date);
 			for (const { start, end } of slotTimes) {
 				if (existingSet.has(`${date}_${start}_${wagonType}`)) continue;
 				toInsert.push({
