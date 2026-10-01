@@ -5,7 +5,7 @@ import { gte, count, eq, ne, and } from 'drizzle-orm';
 import { fail } from '@sveltejs/kit';
 import { bookedSeatsSql } from '$lib/server/booking-seats';
 import { requireAdmin } from '$lib/server/admin-guard';
-import { getAllowReservationsFrom } from '$lib/server/reservations';
+import { getReservationsStatus } from '$lib/server/reservations';
 
 const SINGLE_PRICING_ID = 1;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -14,7 +14,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	requireAdmin(locals);
 
 	const today = new Date().toISOString().split('T')[0];
-	const allowReservationsFrom = (await getAllowReservationsFrom()) ?? '';
+	const { allowReservationsFrom, reservationsPaused } = await getReservationsStatus();
 
 	const slots = await db
 		.select({
@@ -39,7 +39,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 		.orderBy(availabilitySlots.date, availabilitySlots.startTime);
 
 	return {
-		allowReservationsFrom,
+		allowReservationsFrom: allowReservationsFrom ?? '',
+		reservationsPaused,
 		slots: slots.map((s) => {
 			const bookedCount = Number(s.bookedCount);
 			const bookedSeats = Number(s.bookedSeats);
@@ -81,5 +82,28 @@ export const actions: Actions = {
 			reservationsSuccess: true,
 			allowReservationsFrom: allowReservationsFrom
 		};
+	},
+	toggleReservationsPause: async ({ locals }) => {
+		requireAdmin(locals);
+
+		const { reservationsPaused } = await getReservationsStatus();
+		const next = !reservationsPaused;
+
+		const [existing] = await db
+			.select({ id: pricing.id })
+			.from(pricing)
+			.where(eq(pricing.id, SINGLE_PRICING_ID))
+			.limit(1);
+
+		if (!existing) {
+			await db.insert(pricing).values({ id: SINGLE_PRICING_ID, reservationsPaused: next });
+		} else {
+			await db
+				.update(pricing)
+				.set({ reservationsPaused: next, updatedAt: new Date() })
+				.where(eq(pricing.id, SINGLE_PRICING_ID));
+		}
+
+		return { pauseSuccess: true, reservationsPaused: next };
 	}
 };

@@ -12,7 +12,16 @@ import { formatReservationOpenDate } from '$lib/reservations';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const POST: RequestHandler = async ({ request, locals }) => {
-	const { allowReservationsFrom, reservationsOpen } = await getReservationsStatus();
+	const { allowReservationsFrom, reservationsPaused, reservationsOpen } = await getReservationsStatus();
+	if (reservationsPaused) {
+		return json(
+			{
+				error:
+					'Registrations have been temporarily paused, but they will resume soon. Please check back.'
+			},
+			{ status: 403 }
+		);
+	}
 	if (!reservationsOpen && allowReservationsFrom) {
 		return json(
 			{

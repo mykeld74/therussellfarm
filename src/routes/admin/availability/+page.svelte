@@ -35,6 +35,7 @@
 	let seedError = $state('');
 	let seeding = $state(false);
 	let savingReservations = $state(false);
+	let togglingPause = $state(false);
 
 	let allowReservationsFrom = $derived(
 		form && 'allowReservationsFrom' in form && typeof form.allowReservationsFrom === 'string'
@@ -333,9 +334,43 @@
 			<div class="sidePanel">
 				<h2>Allow Reservations</h2>
 				<p class="reservationsDesc">
-					Before this date, visitors see when booking opens instead of the wizard. Leave blank to
-					allow booking immediately.
+					Pause stops new bookings until you resume them. The open date controls when booking
+					first becomes available.
 				</p>
+				{#if form?.pauseSuccess}
+					<div class="alert alertSuccess">
+						{data.reservationsPaused ? 'Registrations paused.' : 'Registrations resumed.'}
+					</div>
+				{/if}
+				<form
+					method="POST"
+					action="?/toggleReservationsPause"
+					class="pauseForm"
+					use:enhance={() => {
+						togglingPause = true;
+						return async ({ update }) => {
+							await update();
+							togglingPause = false;
+						};
+					}}
+				>
+					<p class="pauseStatus" class:paused={data.reservationsPaused}>
+						{data.reservationsPaused ? 'Registrations are paused' : 'Registrations are open'}
+					</p>
+					<button
+						type="submit"
+						class="btn {data.reservationsPaused ? 'btnPrimary' : 'btnDanger'}"
+						style="width:100%;"
+						disabled={togglingPause}
+					>
+						{togglingPause
+							? 'Saving…'
+							: data.reservationsPaused
+								? 'Resume registrations'
+								: 'Pause registrations'}
+					</button>
+				</form>
+
 				{#if form?.reservationsError}
 					<div class="alert alertError">{form.reservationsError}</div>
 				{/if}
@@ -395,7 +430,7 @@
 				</div>
 			{:else}
 				<div class="slotsList">
-					{#each data.slots as slot}
+					{#each data.slots as slot (slot.id)}
 						<div class="slotRow" class:inactive={!slot.isActive}>
 							<div class="slotInfo">
 								<div class="slotDate">{formatDate(slot.date)}</div>
@@ -520,6 +555,26 @@
 
 	.sidePanel > .reservationsDesc {
 		margin-top: -0.75rem;
+	}
+
+	.pauseForm {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		margin-bottom: 1.25rem;
+		padding-bottom: 1.25rem;
+		border-bottom: 1px solid var(--color-border);
+	}
+
+	.pauseStatus {
+		margin: 0;
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: var(--color-forest);
+	}
+
+	.pauseStatus.paused {
+		color: var(--color-barn-red, #9b2c2c);
 	}
 
 	.reservationsForm {

@@ -18,11 +18,25 @@ export async function getAllowReservationsFrom(): Promise<string | null> {
 
 export async function getReservationsStatus(now = new Date()): Promise<{
 	allowReservationsFrom: string | null;
+	reservationsPaused: boolean;
 	reservationsOpen: boolean;
 }> {
-	const allowReservationsFrom = await getAllowReservationsFrom();
+	const [row] = await db
+		.select({
+			allowReservationsFrom: pricing.allowReservationsFrom,
+			reservationsPaused: pricing.reservationsPaused
+		})
+		.from(pricing)
+		.where(eq(pricing.id, SINGLE_PRICING_ID))
+		.limit(1);
+
+	const allowReservationsFrom = row?.allowReservationsFrom ?? null;
+	const reservationsPaused = row?.reservationsPaused ?? false;
+	const dateOpen = areReservationsOpen(allowReservationsFrom, now);
+
 	return {
 		allowReservationsFrom,
-		reservationsOpen: areReservationsOpen(allowReservationsFrom, now)
+		reservationsPaused,
+		reservationsOpen: dateOpen && !reservationsPaused
 	};
 }

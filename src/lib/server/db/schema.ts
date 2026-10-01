@@ -54,6 +54,8 @@ export const pricing = pgTable('pricing', {
 	mapleSyrupGallonCents: integer('maple_syrup_gallon_cents').notNull().default(6000),
 	/** Calendar date (YYYY-MM-DD) when online reservations open. Null = always open. */
 	allowReservationsFrom: date('allow_reservations_from'),
+	/** When true, new bookings are blocked until an admin resumes them. */
+	reservationsPaused: boolean('reservations_paused').notNull().default(false),
 	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
 });
 

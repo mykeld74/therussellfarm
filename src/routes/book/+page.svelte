@@ -127,7 +127,15 @@
 			<p>Christmas Tree Wagon Ride & Cabin Experience · Reserve your family's spot</p>
 		</div>
 
-		{#if !data.reservationsOpen}
+		{#if data.reservationsPaused}
+			<div class="reservationsClosed">
+				<p class="closedEyebrow">Registrations paused</p>
+				<p class="closedMessage">
+					Registrations have been temporarily paused, but they will resume soon. Please check back.
+				</p>
+				<a href="/christmas-trees" class="btn btnPrimary">Learn about the experience</a>
+			</div>
+		{:else if !data.reservationsOpen}
 			<div class="reservationsClosed">
 				<p class="closedEyebrow">Reservations not open yet</p>
 				<p class="closedMessage">

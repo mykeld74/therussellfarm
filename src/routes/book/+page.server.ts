@@ -8,16 +8,17 @@ import { getReservationsStatus } from '$lib/server/reservations';
 import { formatReservationOpenDate } from '$lib/reservations';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	const { allowReservationsFrom, reservationsOpen } = await getReservationsStatus();
+	const { allowReservationsFrom, reservationsPaused, reservationsOpen } = await getReservationsStatus();
 
-	if (!reservationsOpen && allowReservationsFrom) {
+	if (reservationsPaused || (!reservationsOpen && allowReservationsFrom)) {
 		return {
 			user: locals.user ?? null,
 			firstAvailableDate: null,
 			phone: null,
+			reservationsPaused,
 			reservationsOpen: false,
 			allowReservationsFrom,
-			opensOnLabel: formatReservationOpenDate(allowReservationsFrom)
+			opensOnLabel: allowReservationsFrom ? formatReservationOpenDate(allowReservationsFrom) : null
 		};
 	}
 
@@ -65,6 +66,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		user: locals.user ?? null,
 		firstAvailableDate: firstAvailable?.date ?? null,
 		phone,
+		reservationsPaused: false,
 		reservationsOpen: true,
 		allowReservationsFrom,
 		opensOnLabel: null as string | null
