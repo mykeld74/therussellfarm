@@ -35,6 +35,8 @@ export const bookings = pgTable('bookings', {
 	partySizeAdults: integer('party_size_adults').notNull(),
 	partySizeKids: integer('party_size_kids').notNull().default(0),
 	status: bookingStatusEnum('status').notNull().default('confirmed'),
+	/** Set when an admin checks the party in for their wagon time. */
+	checkedInAt: timestamp('checked_in_at', { withTimezone: true }),
 	notes: text('notes'),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 });

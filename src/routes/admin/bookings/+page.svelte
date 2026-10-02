@@ -1,12 +1,71 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { invalidateAll } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { formatDate, formatTime, badgeClass } from '$lib/utils';
+	import CheckInSheet from '$lib/components/admin/CheckInSheet.svelte';
 
 	let { data }: { data: PageData } = $props();
 
 	let updatingId = $state<number | null>(null);
 	let updateError = $state('');
+
+	const pageSizes = [25, 50, 100, 200];
+
+	type SortKey = 'dateTime' | 'name';
+
+	function bookingsHref(
+		changes: {
+			page?: number;
+			perPage?: number;
+			sort?: SortKey;
+			dir?: 'asc' | 'desc';
+		} = {}
+	) {
+		const params = new URLSearchParams();
+		if (data.dateFilter) params.set('date', data.dateFilter);
+		if (data.refFilter) params.set('ref', data.refFilter);
+		if (data.emailFilter) params.set('email', data.emailFilter);
+		if (data.statusFilter !== 'confirmed') params.set('status', data.statusFilter);
+
+		const perPage = changes.perPage ?? data.perPage;
+		const sort = changes.sort ?? data.sort;
+		const dir = changes.dir ?? data.dir;
+		const page = changes.page ?? data.page;
+		if (perPage !== 50) params.set('perPage', String(perPage));
+		if (sort !== 'dateTime') params.set('sort', sort);
+		if (dir !== 'asc') params.set('dir', dir);
+		if (page > 1) params.set('page', String(page));
+
+		const query = params.toString();
+		return query ? `/admin/bookings?${query}` : '/admin/bookings';
+	}
+
+	function sortHref(key: SortKey) {
+		const dir = data.sort === key && data.dir === 'asc' ? 'desc' : 'asc';
+		return bookingsHref({ sort: key, dir, page: 1 });
+	}
+
+	function sortIndicator(key: SortKey): string {
+		if (data.sort !== key) return '';
+		return data.dir === 'asc' ? ' ↑' : ' ↓';
+	}
+
+	function ariaSort(key: SortKey): 'ascending' | 'descending' | 'none' {
+		if (data.sort !== key) return 'none';
+		return data.dir === 'asc' ? 'ascending' : 'descending';
+	}
+
+	let rangeStart = $derived(data.total === 0 ? 0 : (data.page - 1) * data.perPage + 1);
+	let rangeEnd = $derived(Math.min(data.page * data.perPage, data.total));
+
+	let checkInHref = $derived.by(() => {
+		if (data.tab === 'checkin') {
+			return `/admin/bookings?tab=checkin&date=${data.checkInDate}`;
+		}
+		const day =
+			data.dateFilter || (data.bookedDates.includes(data.today) ? data.today : '');
+		return day ? `/admin/bookings?tab=checkin&date=${day}` : '/admin/bookings?tab=checkin';
+	});
 
 	async function updateStatus(id: number, status: string) {
 		updatingId = id;
@@ -37,18 +96,49 @@
 </svelte:head>
 
 <div class="adminPage">
-	<div class="bookingsTitle">
+	<div class="bookingsTitle noPrint">
 		<h1>Bookings</h1>
-		<span class="bookingCount"
-			>{data.bookings.length} result{data.bookings.length !== 1 ? 's' : ''}</span
-		>
+		{#if data.tab !== 'checkin'}
+			<span class="bookingCount"
+				>{data.total} result{data.total !== 1 ? 's' : ''}</span
+			>
+		{/if}
 	</div>
 
+	<nav class="viewTabs noPrint" aria-label="Bookings views">
+		<a href="/admin/bookings" class="viewTab" class:active={data.tab !== 'checkin'}>Bookings</a>
+		<a href={checkInHref} class="viewTab" class:active={data.tab === 'checkin'}
+			>Check-in</a
+		>
+	</nav>
+
+	{#if data.tab === 'checkin'}
+		<CheckInSheet
+			date={data.checkInDate}
+			today={data.today}
+			dates={data.bookedDates}
+			bookings={data.checkInBookings}
+		/>
+	{:else}
 	<!-- Filters -->
 	<form method="GET" class="filtersBar">
+		<input type="hidden" name="perPage" value={data.perPage} />
+		<input type="hidden" name="sort" value={data.sort} />
+		<input type="hidden" name="dir" value={data.dir} />
 		<div class="filterField">
 			<label for="dateFilter">Date</label>
-			<input id="dateFilter" type="date" name="date" value={data.dateFilter} />
+			<select
+				id="dateFilter"
+				name="date"
+				onchange={(e) => e.currentTarget.form?.requestSubmit()}
+			>
+				<option value="" selected={data.dateFilter === ''}>All dates</option>
+				{#each data.bookedDates as bookedDate (bookedDate)}
+					<option value={bookedDate} selected={data.dateFilter === bookedDate}>
+						{formatDate(bookedDate)}
+					</option>
+				{/each}
+			</select>
 		</div>
 		<div class="filterField">
 			<label for="refFilter">Ref</label>
@@ -92,7 +182,7 @@
 		<div class="alert alertError">{updateError}</div>
 	{/if}
 
-	{#if data.bookings.length === 0}
+	{#if data.total === 0}
 		<div class="emptyPanel">
 			<p>No bookings found for the selected filters.</p>
 		</div>
@@ -103,8 +193,14 @@
 				<thead>
 					<tr>
 						<th>Ref</th>
-						<th>Date & Time</th>
-						<th>Name</th>
+						<th aria-sort={ariaSort('dateTime')}>
+							<a class="sortBtn" href={sortHref('dateTime')}>
+								Date & Time{sortIndicator('dateTime')}
+							</a>
+						</th>
+						<th aria-sort={ariaSort('name')}>
+							<a class="sortBtn" href={sortHref('name')}>Name{sortIndicator('name')}</a>
+						</th>
 						<th>Email</th>
 						<th>Party</th>
 						<th>Status</th>
@@ -112,7 +208,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each data.bookings as booking}
+					{#each data.bookings as booking (booking.id)}
 						<tr class="bookingRow {rowStatusClass[booking.status] ?? ''}">
 							<td class="refCell">
 								<code>{booking.bookingRef}</code>
@@ -162,7 +258,7 @@
 
 		<!-- Mobile: cards for full booking readout -->
 		<div class="bookingsCards">
-			{#each data.bookings as booking}
+			{#each data.bookings as booking (booking.id)}
 				<article class="bookingCard {rowStatusClass[booking.status] ?? ''}">
 					<div class="cardHeader">
 						<code class="cardRef">{booking.bookingRef}</code>
@@ -226,6 +322,37 @@
 				</article>
 			{/each}
 		</div>
+
+		<div class="pager">
+			<label class="pageSizeField">
+				Rows
+				<select
+					aria-label="Rows per page"
+					onchange={(e) => goto(bookingsHref({ perPage: Number(e.currentTarget.value), page: 1 }))}
+				>
+					{#each pageSizes as size (size)}
+						<option value={size} selected={data.perPage === size}>{size}</option>
+					{/each}
+				</select>
+			</label>
+			<p class="pagerSummary">
+				Showing {rangeStart}–{rangeEnd} of {data.total}
+			</p>
+			<div class="pagerNav">
+				{#if data.page > 1}
+					<a class="pagerLink" href={bookingsHref({ page: data.page - 1 })}>Previous</a>
+				{:else}
+					<span class="pagerLink disabled">Previous</span>
+				{/if}
+				<span class="pagerPage">Page {data.page} of {data.pageCount}</span>
+				{#if data.page < data.pageCount}
+					<a class="pagerLink" href={bookingsHref({ page: data.page + 1 })}>Next</a>
+				{:else}
+					<span class="pagerLink disabled">Next</span>
+				{/if}
+			</div>
+		</div>
+	{/if}
 	{/if}
 </div>
 
@@ -241,6 +368,27 @@
 		font-size: 1.75rem;
 		color: var(--color-forest-dk);
 		margin: 0;
+	}
+
+	.viewTabs {
+		display: flex;
+		gap: 0.25rem;
+		margin-bottom: 1.5rem;
+		border-bottom: 1px solid var(--color-border);
+	}
+
+	.viewTab {
+		padding: 0.65rem 1rem;
+		margin-bottom: -1px;
+		border-bottom: 2px solid transparent;
+		color: var(--color-text-muted);
+		font-weight: 600;
+		text-decoration: none;
+	}
+
+	.viewTab.active {
+		color: var(--color-forest-dk);
+		border-bottom-color: var(--color-forest);
 	}
 
 	.bookingCount {
@@ -313,6 +461,79 @@
 		color: var(--color-text-muted);
 		border-bottom: 1px solid var(--color-border);
 		white-space: nowrap;
+	}
+
+	.sortBtn {
+		background: none;
+		border: none;
+		padding: 0.25rem 0;
+		font: inherit;
+		font-size: 0.8rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--color-text-muted);
+		cursor: pointer;
+		text-decoration: none;
+	}
+
+	.pager {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+		margin-top: 1rem;
+	}
+
+	.pageSizeField {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: var(--color-text-muted);
+	}
+
+	.pageSizeField select {
+		padding: 0.4rem 0.6rem;
+		border: 1.5px solid var(--color-border);
+		border-radius: var(--radius);
+		font-family: var(--font-sans);
+		font-size: 0.9rem;
+		background: var(--color-white);
+		color: var(--color-text);
+	}
+
+	.pagerSummary,
+	.pagerPage {
+		margin: 0;
+		font-size: 0.9rem;
+		color: var(--color-text-muted);
+	}
+
+	.pagerNav {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.pagerLink {
+		font-size: 0.9rem;
+		font-weight: 600;
+		color: var(--color-forest);
+		text-decoration: none;
+	}
+
+	.pagerLink.disabled {
+		color: var(--color-text-muted);
+		font-weight: 500;
+	}
+
+	.sortBtn:hover,
+	th[aria-sort='ascending'] .sortBtn,
+	th[aria-sort='descending'] .sortBtn {
+		color: var(--color-forest);
 	}
 
 	.bookingsTable td {

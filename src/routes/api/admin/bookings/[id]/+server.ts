@@ -14,6 +14,18 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 	if (!Number.isFinite(id)) return json({ error: 'Invalid id' }, { status: 400 });
 
 	const body = await request.json();
+
+	if (typeof body.checkedIn === 'boolean') {
+		const [updated] = await db
+			.update(bookings)
+			.set({ checkedInAt: body.checkedIn ? new Date() : null })
+			.where(eq(bookings.id, id))
+			.returning();
+
+		if (!updated) error(404, 'Booking not found');
+		return json({ id: updated.id, checkedInAt: updated.checkedInAt });
+	}
+
 	const { status } = body;
 
 	if (!['confirmed', 'cancelled'].includes(status)) {
