@@ -4,7 +4,7 @@
 	import { enhance } from '$app/forms';
 	import { formatDate, formatTime } from '$lib/utils';
 	import { WAGON_CONFIG, WAGON_TYPES, type WagonType } from '$lib/booking-capacity';
-	import { operatingWindowLabel } from '$lib/wagon-hours';
+	import { operatingWindowLabel, slotIntervalMinutes } from '$lib/wagon-hours';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -43,8 +43,10 @@
 			: data.allowReservationsFrom
 	);
 
-	let wagonInterval = $derived(WAGON_CONFIG[newWagonType].intervalMinutes);
-	let dayWindowLabel = $derived(newDate ? operatingWindowLabel(newDate) : operatingWindowLabel());
+	let wagonInterval = $derived(slotIntervalMinutes(newWagonType, newDate || undefined));
+	let dayWindowLabel = $derived(
+		operatingWindowLabel(newDate || undefined, newWagonType)
+	);
 
 	$effect(() => {
 		// When wagon type changes, reset capacity to that type's default
@@ -307,11 +309,12 @@
 				</form>
 
 				<div class="seedSection">
-					<h3>Holiday slots (Sat & Sun)</h3>
+					<h3>Holiday slots</h3>
 					<p class="seedDesc">
-						Add Fri–Sun slots from the Friday after Thanksgiving through the last Sunday before
-						Christmas: horse every 15&nbsp;min (16 seats) and tractor every 30&nbsp;min (24 seats).
-						Friday and Saturday run 10:00&nbsp;am–4:00&nbsp;pm. Sundays run 12:30–3:45&nbsp;pm.
+						Add slots from the Friday after Thanksgiving through the last Sunday before Christmas.
+						Friday and Saturday: horse every 15&nbsp;min and tractor every 30&nbsp;min, 10:00&nbsp;am–4:00&nbsp;pm.
+						Sundays: horse from 10:00&nbsp;am, tractor from noon, both through 3:45&nbsp;pm. Wednesdays: horse-drawn only, every
+						30&nbsp;min from noon–4:00&nbsp;pm.
 					</p>
 					{#if seedError}
 						<div class="alert alertError">{seedError}</div>

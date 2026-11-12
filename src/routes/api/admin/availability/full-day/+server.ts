@@ -5,7 +5,7 @@ import { availabilitySlots } from '$lib/server/db/schema';
 import { requireAdmin } from '$lib/server/admin-guard';
 import { and, eq } from 'drizzle-orm';
 import { isWagonType, WAGON_CONFIG, type WagonType } from '$lib/booking-capacity';
-import { getWagonSlotTimes, operatingWindowLabel } from '$lib/server/wagon-slots';
+import { getWagonSlotTimes, operatingWindowLabel, slotIntervalMinutes } from '$lib/server/wagon-slots';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -29,7 +29,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	const wagonType: WagonType = isWagonType(rawType) ? rawType : 'horse';
 	const defaultCap = WAGON_CONFIG[wagonType].seatCapacity;
-	const interval = WAGON_CONFIG[wagonType].intervalMinutes;
+	const interval = slotIntervalMinutes(wagonType, date);
 	const cap = Number(maxCapacity ?? defaultCap);
 	if (!Number.isFinite(cap) || cap < 1 || cap > 100) {
 		return json({ error: 'Capacity must be between 1 and 100' }, { status: 400 });
@@ -79,7 +79,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	return json(
 		{
-			message: `Created ${toInsert.length} ${WAGON_CONFIG[wagonType].shortLabel.toLowerCase()} slots for ${date} (every ${interval} minutes, ${operatingWindowLabel(date)}).`,
+			message: `Created ${toInsert.length} ${WAGON_CONFIG[wagonType].shortLabel.toLowerCase()} slots for ${date} (every ${interval} minutes, ${operatingWindowLabel(date, wagonType)}).`,
 			created: toInsert.length
 		},
 		{ status: 201 }

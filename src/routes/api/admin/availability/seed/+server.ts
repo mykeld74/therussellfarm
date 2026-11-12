@@ -12,7 +12,7 @@ import {
 import { WAGON_CONFIG, WAGON_TYPES, type WagonType } from '$lib/booking-capacity';
 import { getWagonSlotTimes } from '$lib/server/wagon-slots';
 
-/** Friday after Thanksgiving, plus all Saturdays and Sundays through last Sunday before Christmas */
+/** Friday after Thanksgiving, Wednesdays, Saturdays, and Sundays through the last Sunday before Christmas */
 function getHolidayWeekendDates(year: number): string[] {
 	const thanksgiving = thanksgivingThursday(year);
 
@@ -32,7 +32,7 @@ function getHolidayWeekendDates(year: number): string[] {
 	let d = new Date(satAfterThanksgiving);
 	while (d <= endDate) {
 		const day = d.getDay();
-		if (day === 0 || day === 6) dates.push(d.toISOString().slice(0, 10));
+		if (day === 0 || day === 3 || day === 6) dates.push(d.toISOString().slice(0, 10));
 		d.setDate(d.getDate() + 1);
 	}
 
@@ -98,7 +98,7 @@ export const POST: RequestHandler = async ({ locals }) => {
 	await db.insert(availabilitySlots).values(toInsert);
 
 	return json({
-		message: `Created ${toInsert.length} holiday availability slots (horse every 15 min, tractor every 30 min).`,
+		message: `Created ${toInsert.length} holiday availability slots (horse every 15 min, tractor every 30 min, Wednesday horse every 30 min from noon to 4:00 pm).`,
 		created: toInsert.length,
 		dates,
 		year

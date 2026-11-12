@@ -4,7 +4,7 @@ import { db } from '$lib/server/db';
 import { availabilitySlots } from '$lib/server/db/schema';
 import { requireAdmin } from '$lib/server/admin-guard';
 import { isWagonType, WAGON_CONFIG, type WagonType } from '$lib/booking-capacity';
-import { operatingWindowLabel, slotFitsOperatingWindow } from '$lib/wagon-hours';
+import { isWednesdayDate, operatingWindowLabel, slotFitsOperatingWindow } from '$lib/wagon-hours';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_RE = /^\d{2}:\d{2}(:\d{2})?$/;
@@ -33,10 +33,17 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ error: 'Capacity must be between 1 and 100' }, { status: 400 });
 	}
 
-	if (!slotFitsOperatingWindow(date, startTime, endTime)) {
+	if (isWednesdayDate(date) && wagonType === 'tractor') {
+		return json(
+			{ error: 'Wednesdays are horse-drawn wagons only, every 30 minutes from noon to 4:00 PM.' },
+			{ status: 400 }
+		);
+	}
+
+	if (!slotFitsOperatingWindow(date, startTime, endTime, wagonType)) {
 		return json(
 			{
-				error: `That time is outside the available hours (${operatingWindowLabel(date)}).`
+				error: `That time is outside the available hours (${operatingWindowLabel(date, wagonType)}).`
 			},
 			{ status: 400 }
 		);

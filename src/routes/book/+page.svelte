@@ -212,6 +212,11 @@
 				{/if}
 			</div>
 		{/if}
+
+		<p class="bookingHelpNote">
+			If you need help booking or have a question, please reach out to Brandon via email at
+			<a href="mailto:maplehillside@gmail.com">maplehillside@gmail.com</a>
+		</p>
 	</div>
 </div>
 
@@ -234,6 +239,21 @@
 	.pageHeader p {
 		color: var(--color-text-muted);
 		font-size: 1rem;
+	}
+
+	.bookingHelpNote {
+		max-width: 36rem;
+		margin: 3rem auto 0;
+		text-align: center;
+		font-size: 0.95rem;
+		line-height: 1.55;
+		color: var(--color-text-muted);
+	}
+
+	.bookingHelpNote a {
+		color: var(--color-forest);
+		text-decoration: underline;
+		text-underline-offset: 2px;
 	}
 
 	.reservationsClosed {
