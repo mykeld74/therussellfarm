@@ -17,6 +17,9 @@
 	let linkOpen = $state(false);
 	let linkUrl = $state('https://');
 	let savedSelection: Range | null = null;
+	let activeBold = $state(false);
+	let activeItalic = $state(false);
+	let activeUnderline = $state(false);
 
 	function isEditorEmptyHtml(html: string): boolean {
 		const trimmed = html.trim();
@@ -26,6 +29,18 @@
 			trimmed === '<p><br></p>' ||
 			trimmed === '<div><br></div>'
 		);
+	}
+
+	function updateFormatState() {
+		if (!editorEl || !selectionIsInEditor()) {
+			activeBold = false;
+			activeItalic = false;
+			activeUnderline = false;
+			return;
+		}
+		activeBold = document.queryCommandState('bold');
+		activeItalic = document.queryCommandState('italic');
+		activeUnderline = document.queryCommandState('underline');
 	}
 
 	const editorAttachment: Attachment<HTMLDivElement> = (node) => {
@@ -41,7 +56,11 @@
 			isEmpty = true;
 		}
 
+		const onSelectionChange = () => updateFormatState();
+		document.addEventListener('selectionchange', onSelectionChange);
+
 		return () => {
+			document.removeEventListener('selectionchange', onSelectionChange);
 			if (editorEl === node) editorEl = null;
 		};
 	};
@@ -52,6 +71,7 @@
 		const empty = isEditorEmptyHtml(html);
 		isEmpty = empty;
 		value = empty ? '' : html;
+		updateFormatState();
 	}
 
 	function focusEditor() {
@@ -96,6 +116,7 @@
 		focusEditor();
 		document.execCommand(command, false, commandValue);
 		syncValue();
+		updateFormatState();
 	}
 
 	function toggleLink() {
@@ -213,27 +234,30 @@
 	<div class="toolbar" role="toolbar" aria-label="Formatting">
 		<button
 			type="button"
-			class="toolBtn"
+			class={['toolBtn', { isActive: activeBold }]}
 			title="Bold"
 			aria-label="Bold"
+			aria-pressed={activeBold}
 			onmousedown={preserveSelection(() => run('bold'))}
 		>
 			<span class="toolLabel bold">B</span>
 		</button>
 		<button
 			type="button"
-			class="toolBtn"
+			class={['toolBtn', { isActive: activeItalic }]}
 			title="Italic"
 			aria-label="Italic"
+			aria-pressed={activeItalic}
 			onmousedown={preserveSelection(() => run('italic'))}
 		>
 			<span class="toolLabel italic">I</span>
 		</button>
 		<button
 			type="button"
-			class="toolBtn"
+			class={['toolBtn', { isActive: activeUnderline }]}
 			title="Underline"
 			aria-label="Underline"
+			aria-pressed={activeUnderline}
 			onmousedown={preserveSelection(() => run('underline'))}
 		>
 			<span class="toolLabel underline">U</span>
@@ -313,6 +337,8 @@
 		data-placeholder={placeholder}
 		{@attach editorAttachment}
 		onkeydown={handleEditorKeydown}
+		onkeyup={updateFormatState}
+		onmouseup={updateFormatState}
 		oninput={syncValue}
 		onblur={syncValue}
 	></div>
@@ -351,6 +377,12 @@
 	.toolBtn:hover {
 		background: var(--color-white);
 		border-color: var(--color-border);
+	}
+
+	.toolBtn.isActive {
+		background: var(--color-forest);
+		border-color: var(--color-forest);
+		color: var(--color-cream);
 	}
 
 	.toolLabel.bold {

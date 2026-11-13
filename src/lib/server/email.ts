@@ -139,6 +139,8 @@ export interface AdminBroadcastData {
 	subject: string;
 	/** Plain text or allowlisted HTML from the admin rich-text editor. */
 	body: string;
+	/** ISO 8601 or Resend natural-language time; omit to send immediately. */
+	scheduledAt?: string;
 }
 
 export async function sendAdminBroadcast(data: AdminBroadcastData) {
@@ -146,7 +148,8 @@ export async function sendAdminBroadcast(data: AdminBroadcastData) {
 		from: env.FROM_EMAIL,
 		to: data.to,
 		subject: data.subject,
-		html: buildAdminBroadcastHtml(data)
+		html: buildAdminBroadcastHtml(data),
+		...(data.scheduledAt ? { scheduledAt: data.scheduledAt } : {})
 	});
 }
 

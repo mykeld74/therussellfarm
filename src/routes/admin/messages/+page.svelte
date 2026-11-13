@@ -1,6 +1,11 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { formatDate, formatTime } from '$lib/utils';
+	import {
+		farmDatetimeLocalToUtc,
+		formatFarmDateTime,
+		toFarmDatetimeLocalValue
+	} from '$lib/farm-datetime';
 	import { untrack } from 'svelte';
 	import EmailRichTextEditor from '$lib/components/admin/EmailRichTextEditor.svelte';
 
@@ -19,6 +24,10 @@
 	let subject = $state('');
 	let body = $state('');
 	let editorKey = $state(0);
+	let sendTiming: 'now' | 'later' = $state('now');
+	let scheduleLocal = $state(
+		untrack(() => toFarmDatetimeLocalValue(new Date(Date.now() + 60 * 60 * 1000)))
+	);
 	let sending = $state(false);
 	let sendError = $state('');
 	let sendSuccess = $state('');
@@ -143,43 +152,65 @@
 		addEmailInput = '';
 	}
 
+	function validateComposeFields(): string | null {
+		const plainBody = body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+		if (!subject.trim() || !plainBody) return 'Subject and message are required.';
+		if (mode === 'day' && !selectedDate) return 'Choose a day with bookings.';
+		if (mode === 'select' && selectedEmails.length === 0) {
+			return 'Select or add at least one recipient.';
+		}
+		if (mode === 'custom') {
+			if (customEmailList.length === 0) return 'Enter at least one email address.';
+			const invalid = customEmailList.find((email) => !EMAIL_RE.test(email));
+			if (invalid) return `Invalid email address: ${invalid}`;
+		}
+		if (recipientCount === 0) return 'No recipients match this selection.';
+		return null;
+	}
+
+	function resetCompose() {
+		subject = '';
+		body = '';
+		editorKey += 1;
+		sendTiming = 'now';
+		if (mode === 'select') selectedEmails = [];
+		if (mode === 'custom') customEmailsText = '';
+	}
+
 	async function handleSend() {
 		sendError = '';
 		sendSuccess = '';
 
-		const plainBody = body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-		if (!subject.trim() || !plainBody) {
-			sendError = 'Subject and message are required.';
-			return;
-		}
-		if (mode === 'day' && !selectedDate) {
-			sendError = 'Choose a day with bookings.';
-			return;
-		}
-		if (mode === 'select' && selectedEmails.length === 0) {
-			sendError = 'Select or add at least one recipient.';
-			return;
-		}
-		if (mode === 'custom') {
-			if (customEmailList.length === 0) {
-				sendError = 'Enter at least one email address.';
-				return;
-			}
-			const invalid = customEmailList.find((email) => !EMAIL_RE.test(email));
-			if (invalid) {
-				sendError = `Invalid email address: ${invalid}`;
-				return;
-			}
-		}
-		if (recipientCount === 0) {
-			sendError = 'No recipients match this selection.';
+		const validationError = validateComposeFields();
+		if (validationError) {
+			sendError = validationError;
 			return;
 		}
 
-		const confirmed = window.confirm(
-			`Send this email to ${recipientCount} recipient${recipientCount === 1 ? '' : 's'}?`
-		);
-		if (!confirmed) return;
+		let scheduledAtIso: string | undefined;
+		if (sendTiming === 'later') {
+			const scheduledAt = farmDatetimeLocalToUtc(scheduleLocal);
+			if (Number.isNaN(scheduledAt.getTime())) {
+				sendError = 'Enter a valid schedule date and time.';
+				return;
+			}
+			if (scheduledAt.getTime() <= Date.now() + 60_000) {
+				sendError = 'Schedule time must be at least 1 minute from now.';
+				return;
+			}
+			if (scheduledAt.getTime() > Date.now() + 30 * 24 * 60 * 60 * 1000) {
+				sendError = 'Schedule time must be within 30 days.';
+				return;
+			}
+			scheduledAtIso = scheduledAt.toISOString();
+		}
+
+		const actionLabel =
+			sendTiming === 'later'
+				? `Schedule this email with Resend for ${formatFarmDateTime(scheduledAtIso!)} to ${recipientCount} recipient${recipientCount === 1 ? '' : 's'}? It can’t be edited here after scheduling.`
+				: `Send this email to ${recipientCount} recipient${recipientCount === 1 ? '' : 's'} now?`;
+
+		if (!window.confirm(actionLabel)) return;
 
 		sending = true;
 		try {
@@ -196,12 +227,19 @@
 							? selectedEmails
 							: mode === 'custom'
 								? customEmailList
-								: undefined
+								: undefined,
+					scheduledAt: scheduledAtIso
 				})
 			});
 			const result = await res.json().catch(() => ({}));
 			if (!res.ok) {
-				sendError = result.error ?? 'Failed to send messages.';
+				sendError = result.error ?? 'Failed to send message.';
+				return;
+			}
+
+			if (result.scheduled) {
+				sendSuccess = `Handed off to Resend for ${formatFarmDateTime(result.scheduledAt)} (${result.sentCount} recipient${result.sentCount === 1 ? '' : 's'}).`;
+				resetCompose();
 				return;
 			}
 
@@ -209,11 +247,7 @@
 				sendError = `Sent ${result.sentCount}, but ${result.failedCount} failed.`;
 			} else {
 				sendSuccess = `Sent to ${result.sentCount} recipient${result.sentCount === 1 ? '' : 's'}.`;
-				subject = '';
-				body = '';
-				editorKey += 1;
-				if (mode === 'select') selectedEmails = [];
-				if (mode === 'custom') customEmailsText = '';
+				resetCompose();
 			}
 		} catch {
 			sendError = 'Network error. Please try again.';
@@ -231,7 +265,7 @@
 	<h1 class="adminH1">Messages</h1>
 	<p class="pageIntro">
 		Email confirmed guests, or enter any address. Cancelled bookings are never included in guest lists,
-		and duplicate emails are sent once.
+		and duplicate emails are sent once. Scheduled sends are handed off to Resend immediately.
 	</p>
 
 	<section class="adminSection composeSection">
@@ -423,6 +457,34 @@
 				</p>
 			</div>
 
+			<fieldset class="modeFieldset">
+				<legend>When to send</legend>
+				<label class="modeOption">
+					<input type="radio" name="sendTiming" value="now" bind:group={sendTiming} />
+					<span>
+						<strong>Send now</strong>
+						<span class="modeHint">Deliver immediately</span>
+					</span>
+				</label>
+				<label class="modeOption">
+					<input type="radio" name="sendTiming" value="later" bind:group={sendTiming} />
+					<span>
+						<strong>Schedule for later</strong>
+						<span class="modeHint">Hand off to Resend (Eastern, within 30 days)</span>
+					</span>
+				</label>
+				{#if sendTiming === 'later'}
+					<div class="fieldGroup scheduleField">
+						<label for="scheduleAt">Send at</label>
+						<input id="scheduleAt" type="datetime-local" bind:value={scheduleLocal} />
+						<p class="fieldHint">
+							Times are in America/New_York (Eastern). After scheduling, manage or cancel in the
+							Resend dashboard if needed.
+						</p>
+					</div>
+				{/if}
+			</fieldset>
+
 			<div class="composeActions">
 				<button
 					type="button"
@@ -430,7 +492,13 @@
 					onclick={handleSend}
 					disabled={sending || recipientCount === 0}
 				>
-					{sending ? 'Sending…' : `Send to ${recipientCount}`}
+					{#if sending}
+						{sendTiming === 'later' ? 'Scheduling…' : 'Sending…'}
+					{:else if sendTiming === 'later'}
+						Schedule for {recipientCount}
+					{:else}
+						Send to {recipientCount}
+					{/if}
 				</button>
 			</div>
 		</div>
@@ -446,6 +514,19 @@
 
 	.composeSection {
 		max-width: 44rem;
+	}
+
+	.scheduleField {
+		margin-top: 0.35rem;
+	}
+
+	.fieldGroup input[type='datetime-local'] {
+		width: 100%;
+		padding: 0.65rem 0.75rem;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius);
+		font: inherit;
+		background: var(--color-white);
 	}
 
 	.recipientBadge {
@@ -665,6 +746,7 @@
 	.composeActions {
 		display: flex;
 		justify-content: flex-end;
+		flex-wrap: wrap;
 	}
 
 	.alert {
