@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import { env } from '$env/dynamic/private';
+import { prepareBroadcastBodyHtml, plainTextToBroadcastHtml } from '$lib/server/email-html';
 
 let _resend: Resend | null = null;
 function getResend(): Resend {
@@ -132,7 +133,24 @@ export async function sendFarmBookingCancelled(data: FarmBookingNoticeData) {
 	});
 }
 
-export type TestEmailType = 'confirmation' | 'cancelled' | 'reset' | 'all';
+export interface AdminBroadcastData {
+	to: string;
+	name: string;
+	subject: string;
+	/** Plain text or allowlisted HTML from the admin rich-text editor. */
+	body: string;
+}
+
+export async function sendAdminBroadcast(data: AdminBroadcastData) {
+	return sendEmail({
+		from: env.FROM_EMAIL,
+		to: data.to,
+		subject: data.subject,
+		html: buildAdminBroadcastHtml(data)
+	});
+}
+
+export type TestEmailType = 'confirmation' | 'cancelled' | 'reset' | 'broadcast' | 'all';
 
 const sampleBooking: Omit<BookingConfirmationData, 'to'> = {
 	name: 'Test Family',
@@ -144,6 +162,18 @@ const sampleBooking: Omit<BookingConfirmationData, 'to'> = {
 	kids: 2
 };
 
+const sampleBroadcast: Omit<AdminBroadcastData, 'to'> = {
+	name: 'Mike',
+	subject: 'Test message from The Russell Farm',
+	body: plainTextToBroadcastHtml(
+		`Thanks for booking with us — this is a test of our guest email layout.
+
+Please arrive about 15 minutes early so we can keep the wagons on schedule.
+
+If you have questions, just reply to this email.`
+	)
+};
+
 const resendSandboxFrom = 'onboarding@resend.dev';
 
 export function getEmailPreviewHtml(type: Exclude<TestEmailType, 'all'>) {
@@ -152,6 +182,9 @@ export function getEmailPreviewHtml(type: Exclude<TestEmailType, 'all'>) {
 
 	if (type === 'confirmation') return buildConfirmationHtml(booking);
 	if (type === 'cancelled') return buildCancelledHtml(booking);
+	if (type === 'broadcast') {
+		return buildAdminBroadcastHtml({ to: 'preview@example.com', ...sampleBroadcast });
+	}
 	return buildPasswordResetHtml({
 		to: 'preview@example.com',
 		name: sampleBooking.name,
@@ -167,7 +200,9 @@ export async function sendTestEmails(
 	const origin = env.ORIGIN || 'http://localhost:5173';
 	const from = options?.sandbox ? resendSandboxFrom : env.FROM_EMAIL;
 	const types =
-		type === 'all' ? (['confirmation', 'cancelled', 'reset'] as const) : ([type] as const);
+		type === 'all'
+			? (['confirmation', 'cancelled', 'reset', 'broadcast'] as const)
+			: ([type] as const);
 	const sent: { type: TestEmailType; id: string }[] = [];
 	const booking = { to, ...sampleBooking };
 
@@ -200,6 +235,14 @@ export async function sendTestEmails(
 				})
 			});
 			sent.push({ type: 'reset', id: result?.id ?? '' });
+		} else if (emailType === 'broadcast') {
+			const result = await sendEmail({
+				from,
+				to,
+				subject: sampleBroadcast.subject,
+				html: buildAdminBroadcastHtml({ to, ...sampleBroadcast })
+			});
+			sent.push({ type: 'broadcast', id: result?.id ?? '' });
 		}
 	}
 
@@ -267,6 +310,55 @@ function buildPasswordResetHtml(data: PasswordResetData): string {
         </tr>
 
         <!-- Footer -->
+        <tr>
+          <td style="background:#ede6d6;padding:20px 40px;text-align:center;
+            font-family:sans-serif;font-size:13px;color:#6b6355;
+            border-top:1px solid #d4c9b0;">
+            <p style="margin:0;">
+              — The Russell Family
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+function buildAdminBroadcastHtml(data: AdminBroadcastData): string {
+	const name = escapeHtml(data.name);
+	const bodyHtml = prepareBroadcastBodyHtml(data.body);
+
+	return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f9f5ee;font-family:Georgia,serif;color:#2c2c2c;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px;">
+    <tr><td>
+      <table width="600" align="center" cellpadding="0" cellspacing="0"
+        style="background:#fff;border-radius:8px;overflow:hidden;max-width:100%;">
+        <tr>
+          <td style="background:#2d5a27;padding:32px 40px;text-align:center;">
+            <h1 style="margin:0;color:#f9f5ee;font-size:26px;font-family:Georgia,serif;">
+              The Russell Farm
+            </h1>
+            <p style="margin:6px 0 0;color:#a8d5a0;font-size:14px;font-family:sans-serif;">
+              Message from the farm
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:36px 40px;">
+            <p style="font-family:sans-serif;line-height:1.6;margin:0 0 1rem;">
+              Hi ${name},
+            </p>
+            ${bodyHtml}
+            <p style="font-family:sans-serif;line-height:1.6;color:#6b6355;font-size:14px;margin:1.5rem 0 0;">
+              Questions? Simply reply to this email and we'll get back to you.
+            </p>
+          </td>
+        </tr>
         <tr>
           <td style="background:#ede6d6;padding:20px 40px;text-align:center;
             font-family:sans-serif;font-size:13px;color:#6b6355;

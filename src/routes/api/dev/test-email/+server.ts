@@ -3,7 +3,13 @@ import { env } from '$env/dynamic/private';
 import { error, json } from '@sveltejs/kit';
 import { sendTestEmails, type TestEmailType } from '$lib/server/email';
 
-const validTypes = new Set<TestEmailType>(['confirmation', 'cancelled', 'reset', 'all']);
+const validTypes = new Set<TestEmailType>([
+	'confirmation',
+	'cancelled',
+	'reset',
+	'broadcast',
+	'all'
+]);
 
 export const GET = async ({ url }) => {
 	if (!dev) error(404);
@@ -15,7 +21,7 @@ export const GET = async ({ url }) => {
 
 	const typeParam = url.searchParams.get('type') ?? 'all';
 	if (!validTypes.has(typeParam as TestEmailType)) {
-		error(400, 'type must be confirmation, cancelled, reset, or all');
+		error(400, 'type must be confirmation, cancelled, reset, broadcast, or all');
 	}
 
 	const sandbox = url.searchParams.get('sandbox') === 'true';

@@ -2,14 +2,19 @@ import { dev } from '$app/environment';
 import { error } from '@sveltejs/kit';
 import { getEmailPreviewHtml, type TestEmailType } from '$lib/server/email';
 
-const previewTypes = new Set<Exclude<TestEmailType, 'all'>>(['confirmation', 'cancelled', 'reset']);
+const previewTypes = new Set<Exclude<TestEmailType, 'all'>>([
+	'confirmation',
+	'cancelled',
+	'reset',
+	'broadcast'
+]);
 
 export const GET = async ({ url }) => {
 	if (!dev) error(404);
 
 	const typeParam = url.searchParams.get('type') ?? 'confirmation';
 	if (!previewTypes.has(typeParam as Exclude<TestEmailType, 'all'>)) {
-		error(400, 'type must be confirmation, cancelled, or reset');
+		error(400, 'type must be confirmation, cancelled, reset, or broadcast');
 	}
 
 	const html = getEmailPreviewHtml(typeParam as Exclude<TestEmailType, 'all'>);

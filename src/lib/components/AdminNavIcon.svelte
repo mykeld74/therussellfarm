@@ -2,6 +2,7 @@
 	export type AdminNavIconName =
 		| 'dashboard'
 		| 'bookings'
+		| 'messages'
 		| 'availability'
 		| 'pricing'
 		| 'users'
@@ -35,6 +36,9 @@
 		<path d="M6.5 3.5h7a1.25 1.25 0 0 1 1.25 1.25v11.5a1.25 1.25 0 0 1-1.25 1.25h-7a1.25 1.25 0 0 1-1.25-1.25V4.75a1.25 1.25 0 0 1 1.25-1.25Z" />
 		<path d="M7.5 3.5V3a1.5 1.5 0 0 1 1.5-1.5h2a1.5 1.5 0 0 1 1.5 1.5v.5" />
 		<path d="M7 9h6M7 12h4.5" />
+	{:else if name === 'messages'}
+		<path d="M3.5 5.25h13a1.25 1.25 0 0 1 1.25 1.25v7a1.25 1.25 0 0 1-1.25 1.25H8.25L5 17.25v-2.5H3.5A1.25 1.25 0 0 1 2.25 13.5v-7A1.25 1.25 0 0 1 3.5 5.25Z" />
+		<path d="M6.25 9h7.5M6.25 11.75h5" />
 	{:else if name === 'availability'}
 		<path d="M4 4.5h12v12.5H4V4.5Z" />
 		<path d="M4 8.5h12" />

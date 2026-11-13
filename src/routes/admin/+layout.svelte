@@ -7,6 +7,7 @@
 	const baseNavItems: { href: string; label: string; icon: AdminNavIconName }[] = [
 		{ href: '/admin', label: 'Dashboard', icon: 'dashboard' },
 		{ href: '/admin/bookings', label: 'Bookings', icon: 'bookings' },
+		{ href: '/admin/messages', label: 'Messages', icon: 'messages' },
 		{ href: '/admin/availability', label: 'Availability', icon: 'availability' },
 		{ href: '/admin/pricing', label: 'Pricing', icon: 'pricing' }
 	];
