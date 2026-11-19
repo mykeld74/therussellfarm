@@ -15,6 +15,7 @@
 		formatShortMonthDay,
 		formatLongMonthDay
 	} from '$lib/holiday-dates';
+	import TreePricingChart from '$lib/components/TreePricingChart.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -22,11 +23,6 @@
 	const openerSlash = formatSlashDate(season.opener);
 	const closerShort = formatShortMonthDay(season.closer);
 	const closerLong = formatLongMonthDay(season.closer);
-
-	const treeBasePrice = $derived(data.treePrice);
-	const treeOveragePerFoot = $derived(data.treeOveragePerFoot);
-	const exampleFeetOver = 5; // 12 ft − 7 ft
-	const exampleTotal = $derived(treeBasePrice + treeOveragePerFoot * exampleFeetOver);
 
 	const experienceSteps = [
 		{
@@ -123,15 +119,15 @@
 				<p class="price">${data.experiencePrice.toFixed(0)} per household</p>
 				<p>
 					Our full experience: ride out to the fields, pick and cut your own tree, then relax at the
-					cabin with hot chocolate, games, and the fire. We load it on the wagon for you. One tree
-					included per household.
+					cabin with hot chocolate, games, and the fire. We load it on the wagon for you. Includes
+					one tree under 8′ per household — see the chart below for taller trees.
 				</p>
 				<a href="/book" class="btn btnPrimary">Book Your Experience</a>
 			</div>
 			<div class="optionCard">
 				<h3>South Lot — No Wagon Ride</h3>
 				<p class="price">
-					${data.treePrice.toFixed(0)} per tree <span class="priceNote">(up to 7 ft)</span>
+					${data.treePrice.toFixed(0)} per tree <span class="priceNote">(under 8′)</span>
 				</p>
 				<p>
 					Pre-cut trees at the barn (when available), or walk out and cut your own in the South Lot.
@@ -141,11 +137,11 @@
 				<a href="/south-lot" class="btn btnSecondary">More About the South Lot</a>
 			</div>
 		</div>
-		<p class="treePricingNote">
-			Trees 7 feet and under are ${treeBasePrice.toFixed(0)}. For trees taller than 7 feet, add ${treeOveragePerFoot}
-			per additional foot. For example, a 12-foot tree is ${treeBasePrice.toFixed(0)}
-			+ (${treeOveragePerFoot} × {exampleFeetOver} ft) = ${exampleTotal.toFixed(0)}.
-		</p>
+		<TreePricingChart
+			basePrice={data.treePrice}
+			overagePerFoot={data.treeOveragePerFoot}
+			experiencePrice={data.experiencePrice}
+		/>
 	</div>
 </section>
 
@@ -325,10 +321,17 @@
 	}
 
 	.optionCard {
+		display: flex;
+		flex-direction: column;
 		background: var(--color-cream);
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-lg);
 		padding: 2rem;
+	}
+
+	.optionCard .btn {
+		margin-top: auto;
+		align-self: flex-start;
 	}
 
 	.optionCard.featured {
@@ -361,15 +364,6 @@
 		color: var(--color-text-muted);
 		margin-bottom: 1.25rem;
 		line-height: 1.65;
-	}
-
-	.treePricingNote {
-		max-width: 40rem;
-		margin: 1.75rem auto 0;
-		text-align: center;
-		font-size: 0.95rem;
-		line-height: 1.6;
-		color: var(--color-text-muted);
 	}
 
 	/* Experience two-column */

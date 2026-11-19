@@ -1,12 +1,9 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import PageHero from '$lib/components/PageHero.svelte';
+	import TreePricingChart from '$lib/components/TreePricingChart.svelte';
 
 	let { data }: { data: PageData } = $props();
-
-	const treeOveragePerFoot = $derived(data.treeOveragePerFoot);
-	const exampleFeetOver = 5; // 12 ft − 7 ft
-	const exampleTotal = $derived(data.treePrice + treeOveragePerFoot * exampleFeetOver);
 </script>
 
 <svelte:head>
@@ -15,7 +12,7 @@
 		name="description"
 		content={`Cut-your-own or pre-cut Christmas trees (when available) in the South Lot at The Russell Farm. From $${data.treePrice.toFixed(
 			0
-		)} per tree (up to 7 ft), no reservation required.`}
+		)} per tree (under 8′), no reservation required.`}
 	/>
 </svelte:head>
 
@@ -27,14 +24,15 @@
 <section class="sectionWhite">
 	<div class="container contentBlock">
 		<p class="priceLead">
-			${data.treePrice.toFixed(0)} per tree <span class="priceNote">(up to 7 ft)</span>
+			${data.treePrice.toFixed(0)} per tree <span class="priceNote">(under 8′)</span>
 		</p>
-		<p class="treePricingNote">
-			Trees 7 feet and under are ${data.treePrice.toFixed(0)}. For trees taller than 7 feet, add
-			${treeOveragePerFoot} per additional foot. For example, a 12-foot tree is
-			${data.treePrice.toFixed(0)} + (${treeOveragePerFoot} × {exampleFeetOver} ft) =
-			${exampleTotal.toFixed(0)}.
-		</p>
+		<div class="pricingChart">
+			<TreePricingChart
+				basePrice={data.treePrice}
+				overagePerFoot={data.treeOveragePerFoot}
+				experiencePrice={data.experiencePrice}
+			/>
+		</div>
 		<p>
 			The South Lot is perfect if you'd like to skip the wagon ride and head straight to the trees.
 			Choose from pre-cut trees at the barn (when available) or walk out and cut your own in the
@@ -81,14 +79,8 @@
 		color: var(--color-text-muted);
 	}
 
-	.treePricingNote {
-		font-size: 0.95rem;
-		line-height: 1.6;
-		color: var(--color-text-muted);
+	.pricingChart {
 		margin-bottom: 1.5rem;
-		padding: 0.85rem 1rem;
-		background: var(--color-cream);
-		border-radius: var(--radius);
 	}
 
 	.contentBlock p {

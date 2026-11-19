@@ -63,11 +63,14 @@
 						required
 					/>
 				</div>
-				<p class="fieldHint">Shown as "per household" on the Christmas Trees page.</p>
+				<p class="fieldHint">
+					Wagon column on the public price chart (includes one tree under 8′; taller heights add
+					the per-foot extra).
+				</p>
 			</div>
 
 			<div class="fieldGroup">
-				<label for="treePrice">Tree Only (South Lot, up to 7 ft)</label>
+				<label for="treePrice">Tree Only (South Lot, under 8′)</label>
 				<div class="priceInput">
 					<span class="currency">$</span>
 					<input
@@ -80,11 +83,11 @@
 						required
 					/>
 				</div>
-				<p class="fieldHint">Base price for trees 7 feet and under.</p>
+				<p class="fieldHint">Base price for trees under 8 feet. Shown on the public price chart.</p>
 			</div>
 
 			<div class="fieldGroup">
-				<label for="treeOveragePerFoot">Extra per foot over 7 ft</label>
+				<label for="treeOveragePerFoot">Extra per foot for 8′ and taller</label>
 				<div class="priceInput">
 					<span class="currency">$</span>
 					<input
@@ -98,8 +101,8 @@
 					/>
 				</div>
 				<p class="fieldHint">
-					Added for each foot above 7. Example: a 12 ft tree =
-					${data.treePrice.toFixed(0)} + (${data.treeOveragePerFoot.toFixed(0)} × 5) =
+					Used to build the 8′–15′ chart on the Christmas Trees and South Lot pages. Example: a
+					12′ tree =
 					${(data.treePrice + data.treeOveragePerFoot * 5).toFixed(0)}.
 				</p>
 			</div>
